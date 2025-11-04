@@ -1,295 +1,248 @@
-<!DOCTYPE html>
-<html lang="en">
+﻿<!DOCTYPE html>
+<html class="dark" lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tselot Tunes - Remote Admin Panel</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body {
-            background: linear-gradient(135deg, #121220 0%, #1a1a2e 100%);
-            min-height: 100vh;
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Tselot Tunes - Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#d4af35",
+                        "background-light": "#f8f7f6",
+                        "background-dark": "#201d12",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                },
+            },
         }
-          </style>
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24
+        }
+        body { background: #201d12; }
+    </style>
 </head>
-<body class="text-white">
-      <!-- CORS Warning Banner -->
-      <div id="corsWarning" class="fixed top-0 left-0 right-0 bg-red-900 text-white p-4 text-center z-50 hidden">
-          <strong>⚠️ CORS Error Detected!</strong><br>
-          <span class="text-sm">You're accessing this page via <code>file://</code> protocol. Please use: <a href="http://localhost:8000/admin.html" class="text-yellow-400 underline">http://localhost:8000/admin.html</a></span>
-          <button id="closeCorsWarning" class="ml-4 text-yellow-400 cursor-pointer">✕</button>
-      </div>
-      
-      <div class="container mx-auto px-4 py-8 max-w-6xl">
-        <!-- Header -->
-        <div class="mb-8">
-            <h1 class="text-4xl font-bold mb-2" style="color: #D4AF37;">🎵 Tselot Tunes Admin</h1>
-            <p class="text-gray-400">Manage your content remotely - Open this file in any browser</p>
-        </div>
-
-        <!-- API URL Input -->
-        <div class="bg-gray-800 rounded-lg p-4 mb-6">
-            <label class="block text-sm font-medium mb-2">Backend API URL (Render)</label>
-            <input type="text" id="apiUrl" value="https://mezmurtege.onrender.com" 
-                   class="w-full px-4 py-2 bg-gray-700 rounded text-white mb-2"
-                   placeholder="https://mezmurtege.onrender.com">
-            <p class="text-xs text-gray-400 mb-2">Your Render backend is configured</p>
-                        <button id="updateApiUrlBtn" class="px-4 py-2 rounded font-semibold cursor-pointer" style="background: #D4AF37; color: #121220;">
-                  Update URL
-              </button>
-        </div>
-
-        <!-- Login Section -->
-        <div id="loginSection" class="bg-gray-800 rounded-lg p-6 mb-8 max-w-md">
-            <h2 class="text-2xl font-bold mb-4" style="color: #D4AF37;">Admin Login</h2>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium mb-2">Email</label>
-                    <input type="email" id="email" class="w-full px-4 py-2 bg-gray-700 rounded text-white" placeholder="admin@tselottunes.com">
+<body class="bg-background-light dark:bg-background-dark font-display">
+    <div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
+        <div class="flex h-full min-h-screen">
+            <!-- SideNavBar -->
+            <div id="sidebar" class="hidden flex-col border-r border-white/10 bg-[#201d13] p-4 w-64">
+                <div class="flex flex-col gap-4 h-full">
+                    <div class="flex gap-3 items-center">
+                        <div class="bg-gradient-to-br from-primary to-yellow-600 rounded-full size-10"></div>
+                        <div class="flex flex-col">
+                            <h1 class="text-white text-base font-medium">Tselot Tunes</h1>
+                            <p class="text-white/60 text-sm">Admin Panel</p>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-2 mt-6">
+                        <div id="nav-mezmurs" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20 cursor-pointer">
+                            <span class="material-symbols-outlined text-primary text-xl">music_note</span>
+                            <p class="text-primary text-sm font-bold">Mezmurs</p>
+                        </div>
+                        <div id="nav-wallpapers" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 cursor-pointer">
+                            <span class="material-symbols-outlined text-white/80 text-xl">image</span>
+                            <p class="text-white/80 text-sm font-medium">Wallpapers</p>
+                        </div>
+                        <div id="nav-ringtones" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 cursor-pointer">
+                            <span class="material-symbols-outlined text-white/80 text-xl">ring_volume</span>
+                            <p class="text-white/80 text-sm font-medium">Ringtones</p>
+                        </div>
+                        <div id="nav-stats" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 cursor-pointer">
+                            <span class="material-symbols-outlined text-white/80 text-xl">bar_chart</span>
+                            <p class="text-white/80 text-sm font-medium">Statistics</p>
+                        </div>
+                    </div>
+                    <div class="mt-auto">
+                        <button id="sidebarLogoutBtn" class="w-full py-2 px-4 rounded-lg bg-primary text-[#201d13] text-sm font-bold cursor-pointer mt-2">Logout</button>
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium mb-2">Password</label>
-                    <input type="password" id="password" class="w-full px-4 py-2 bg-gray-700 rounded text-white" placeholder="••••••••">
+            </div>
+
+            <!-- Main Content -->
+            <main class="flex-1 p-8">
+                <!-- Login Section -->
+                <div id="loginSection" class="max-w-md mx-auto mt-20">
+                    <div class="bg-[#2b281c] rounded-lg border border-white/20 p-8">
+                        <div class="text-center mb-8">
+                            <div class="bg-gradient-to-br from-primary to-yellow-600 rounded-full size-16 mx-auto mb-4 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-[#201d13] text-3xl">lock</span>
+                            </div>
+                            <h2 class="text-white text-2xl font-bold mb-2">Admin Login</h2>
+                            <p class="text-white/60 text-sm">Sign in to manage your content</p>
+                        </div>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-white/80 text-sm font-medium mb-2">Email</label>
+                                <input type="email" id="email" class="w-full px-4 py-2 bg-[#201d13] border border-white/10 rounded-lg text-white focus:outline-none focus:border-primary" placeholder="admin@tselottunes.com">
+                            </div>
+                            <div>
+                                <label class="block text-white/80 text-sm font-medium mb-2">Password</label>
+                                <input type="password" id="password" class="w-full px-4 py-2 bg-[#201d13] border border-white/10 rounded-lg text-white focus:outline-none focus:border-primary" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢">
+                            </div>
+                            <button id="loginBtn" class="w-full py-3 px-4 rounded-lg font-bold cursor-pointer bg-primary text-[#201d13] hover:bg-yellow-500 transition-colors">Login</button>
+                            <div id="loginError" class="text-red-400 text-sm hidden mt-2"></div>
+                        </div>
+                    </div>
                 </div>
-                                 <button id="loginBtn" class="w-full py-2 px-4 rounded font-semibold cursor-pointer" style="background: #D4AF37; color: #121220;">
-                      Login
-                  </button>
-                <div id="loginError" class="text-red-400 text-sm hidden"></div>
-            </div>
-        </div>
 
-        <!-- Main Content (Hidden until login) -->
-        <div id="mainContent" class="hidden">
-            <!-- Tabs -->
-            <div class="flex space-x-4 mb-6 border-b border-gray-700">
-                                <button data-tab="mezmurs" class="tab-btn px-4 py-2 border-b-2 cursor-pointer" style="border-color: #D4AF37; color: #D4AF37;">
-                      Mezmurs
-                  </button>
-                <button data-tab="wallpapers" class="tab-btn px-4 py-2 border-b-2 border-transparent text-gray-400 cursor-pointer">
-                      Wallpapers
-                  </button>
-                <button data-tab="ringtones" class="tab-btn px-4 py-2 border-b-2 border-transparent text-gray-400 cursor-pointer">
-                      Ringtones
-                  </button>
-                <button data-tab="stats" class="tab-btn px-4 py-2 border-b-2 border-transparent text-gray-400 cursor-pointer">
-                      Statistics
-                  </button>
-                <button id="logoutBtn" class="ml-auto px-4 py-2 text-red-400 cursor-pointer">
-                      Logout
-                  </button>
-            </div>
+                <!-- Main Content (Hidden until login) -->
+                <div id="mainContent" class="hidden max-w-7xl mx-auto">
+                    <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
+                        <div class="flex flex-col gap-2">
+                            <p id="pageTitle" class="text-white text-4xl font-black">Mezmur Management</p>
+                            <p id="pageSubtitle" class="text-white/60 text-base">Manage all the mezmurs in the Tselot Tunes app.</p>
+                        </div>
+                        <button id="addItemBtn" class="flex items-center justify-center rounded-lg h-10 px-4 bg-primary text-[#201d13] text-sm font-bold gap-2 cursor-pointer">
+                            <span class="material-symbols-outlined">add</span>
+                            <span>Add Mezmur</span>
+                        </button>
+                    </div>
 
-            <!-- Mezmurs Tab -->
-            <div id="mezmursTab" class="tab-content">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-2xl font-bold" style="color: #D4AF37;">Manage Mezmurs</h2>
-                                         <button id="addMezmurBtn" class="px-4 py-2 rounded font-semibold cursor-pointer" style="background: #D4AF37; color: #121220;">
-                          + Add Mezmur
-                      </button>
+                    <!-- Tabs -->
+                    <div id="tabsContainer" class="pb-3 mb-6">
+                        <div class="flex border-b border-white/20 gap-8">
+                            <a id="tab-all" class="tab-link flex flex-col items-center border-b-[3px] border-b-primary text-white pb-[13px] pt-4 cursor-pointer">
+                                <p class="text-sm font-bold">All</p>
+                            </a>
+                            <a id="tab-zema" class="tab-link flex flex-col items-center border-b-[3px] border-b-transparent text-white/60 hover:text-white pb-[13px] pt-4 cursor-pointer">
+                                <p class="text-sm font-bold">Zema</p>
+                            </a>
+                            <a id="tab-wazema" class="tab-link flex flex-col items-center border-b-[3px] border-b-transparent text-white/60 hover:text-white pb-[13px] pt-4 cursor-pointer">
+                                <p class="text-sm font-bold">Wazema</p>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Content Area -->
+                    <div id="mezmursTab" class="tab-content">
+                        <div class="flex overflow-hidden rounded-lg border border-white/20 bg-[#2b281c]">
+                            <table class="flex-1 w-full">
+                                <thead>
+                                    <tr class="bg-white/5">
+                                        <th class="px-4 py-3 text-left text-white/80 w-14 text-sm font-medium">Image</th>
+                                        <th class="px-4 py-3 text-left text-white/80 text-sm font-medium">Title</th>
+                                        <th class="px-4 py-3 text-left text-white/80 text-sm font-medium">Artist</th>
+                                        <th class="px-4 py-3 text-left text-white/80 text-sm font-medium">Category</th>
+                                        <th class="px-4 py-3 text-left text-white/80 text-sm font-medium">Plays</th>
+                                        <th class="px-4 py-3 text-left text-white/80 text-sm font-medium">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="mezmursList">
+                                    <tr><td colspan="6" class="px-4 py-8 text-center text-white/60">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div id="wallpapersTab" class="tab-content hidden">
+                        <div id="wallpapersList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div class="text-center text-white/60 py-8">Loading...</div>
+                        </div>
+                    </div>
+
+                    <div id="ringtonesTab" class="tab-content hidden">
+                        <div class="flex overflow-hidden rounded-lg border border-white/20 bg-[#2b281c]">
+                            <table class="flex-1 w-full">
+                                <thead>
+                                    <tr class="bg-white/5">
+                                        <th class="px-4 py-3 text-left text-white/80 text-sm font-medium">Image</th>
+                                        <th class="px-4 py-3 text-left text-white/80 text-sm font-medium">Title</th>
+                                        <th class="px-4 py-3 text-left text-white/80 text-sm font-medium">Artist</th>
+                                        <th class="px-4 py-3 text-left text-white/80 text-sm font-medium">Category</th>
+                                        <th class="px-4 py-3 text-left text-white/80 text-sm font-medium">Downloads</th>
+                                        <th class="px-4 py-3 text-left text-white/80 text-sm font-medium">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ringtonesList">
+                                    <tr><td colspan="6" class="px-4 py-8 text-center text-white/60">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div id="statsTab" class="tab-content hidden">
+                        <div id="statsContent" class="text-center text-white/60 py-8">Loading...</div>
+                    </div>
                 </div>
-                <div id="mezmursList" class="space-y-4"></div>
-            </div>
-
-            <!-- Wallpapers Tab -->
-            <div id="wallpapersTab" class="tab-content hidden">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-2xl font-bold" style="color: #D4AF37;">Manage Wallpapers</h2>
-                                         <button id="addWallpaperBtn" class="px-4 py-2 rounded font-semibold cursor-pointer" style="background: #D4AF37; color: #121220;">
-                          + Add Wallpaper
-                      </button>
-                </div>
-                <div id="wallpapersList" class="grid grid-cols-2 md:grid-cols-3 gap-4"></div>
-            </div>
-
-            <!-- Ringtones Tab -->
-            <div id="ringtonesTab" class="tab-content hidden">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-2xl font-bold" style="color: #D4AF37;">Manage Ringtones</h2>
-                                         <button id="addRingtoneBtn" class="px-4 py-2 rounded font-semibold cursor-pointer" style="background: #D4AF37; color: #121220;">
-                          + Add Ringtone
-                      </button>
-                </div>
-                <div id="ringtonesList" class="space-y-4"></div>
-            </div>
-
-            <!-- Statistics Tab -->
-            <div id="statsTab" class="tab-content hidden">
-                <h2 class="text-2xl font-bold mb-4" style="color: #D4AF37;">App Statistics</h2>
-                <div id="statsContent"></div>
-            </div>
+            </main>
         </div>
     </div>
-
     <script>
-        // Auto-detect API URL when accessed from remote server
-        let API_URL;
-        if (window.location.protocol === 'file:' || window.location.hostname === 'localhost') {
-            API_URL = 'https://mezmurtege.onrender.com';
-        } else {
-            // Use same origin when accessed from remote server
-            API_URL = window.location.origin;
-        }
-        
+        let API_URL = window.location.protocol === 'file:' || window.location.hostname === 'localhost' ? 'https://mezmurtege.onrender.com' : window.location.origin;
         let authToken = localStorage.getItem('auth_token');
-        
-        // Initialize event listeners when page loads
-        window.addEventListener('DOMContentLoaded', function() {
-            // Fix CORS warning banner
-            if (window.location.protocol !== 'file:') {
-                const warningBanner = document.getElementById('corsWarning');
-                if (warningBanner) {
-                    warningBanner.classList.add('hidden');
-                }
-            }
-            
-            // Close CORS warning button
-            const closeCorsWarning = document.getElementById('closeCorsWarning');
-            if (closeCorsWarning) {
-                closeCorsWarning.addEventListener('click', function() {
-                    document.getElementById('corsWarning').classList.add('hidden');
-                });
-            }
-            
-            // Update API URL button
-            const updateApiUrlBtn = document.getElementById('updateApiUrlBtn');
-            if (updateApiUrlBtn) {
-                updateApiUrlBtn.addEventListener('click', updateApiUrl);
-            }
-            
-            // Login button
-            const loginBtn = document.getElementById('loginBtn');
-            if (loginBtn) {
-                loginBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    login();
-                });
-                console.log('Login button event listener attached');
-            } else {
-                console.error('Login button not found!');
-            }
-            
-            // Login on Enter key press
-            const passwordInput = document.getElementById('password');
-            const emailInput = document.getElementById('email');
-            if (passwordInput) {
-                passwordInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        login();
-                    }
-                });
-            }
-            if (emailInput) {
-                emailInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        login();
-                    }
-                });
-            }
-            
-            // Logout button
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', logout);
-            }
-            
-            // Tab buttons
-            document.querySelectorAll('[data-tab]').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    showTab(this.getAttribute('data-tab'));
-                });
-            });
-            
-            // Add buttons
-            const addMezmurBtn = document.getElementById('addMezmurBtn');
-            if (addMezmurBtn) {
-                addMezmurBtn.addEventListener('click', showAddMezmurForm);
-            }
-            
-            const addWallpaperBtn = document.getElementById('addWallpaperBtn');
-            if (addWallpaperBtn) {
-                addWallpaperBtn.addEventListener('click', showAddWallpaperForm);
-            }
-            
-            const addRingtoneBtn = document.getElementById('addRingtoneBtn');
-            if (addRingtoneBtn) {
-                addRingtoneBtn.addEventListener('click', showAddRingtoneForm);
-            }
-            
-            // Event delegation for delete buttons (dynamic content)
-            document.addEventListener('click', function(e) {
-                if (e.target.classList.contains('delete-mezmur-btn')) {
-                    const id = e.target.getAttribute('data-id');
-                    if (id) deleteMezmur(id);
-                } else if (e.target.classList.contains('delete-wallpaper-btn')) {
-                    const id = e.target.getAttribute('data-id');
-                    if (id) deleteWallpaper(id);
-                } else if (e.target.classList.contains('delete-ringtone-btn')) {
-                    const id = e.target.getAttribute('data-id');
-                    if (id) deleteRingtone(id);
-                }
-            });
-        });
         let currentTab = 'mezmurs';
 
         function getHeaders(includeAuth = true) {
             const headers = { 'Content-Type': 'application/json' };
-            if (includeAuth && authToken) {
-                headers['Authorization'] = `Bearer ${authToken}`;
-            }
+            if (includeAuth && authToken) headers['Authorization'] = `Bearer ${authToken}`;
             return headers;
         }
 
-        function getUrlWithBypass(url) {
-            // No bypass needed for Render
-            return url;
+        function formatNumber(num) {
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return num.toString();
         }
 
-        function updateApiUrl() {
-            API_URL = document.getElementById('apiUrl').value;
-            localStorage.setItem('api_url', API_URL);
-            alert('API URL updated!');
+        function updatePageTitle(title, subtitle) {
+            document.getElementById('pageTitle').textContent = title;
+            document.getElementById('pageSubtitle').textContent = subtitle;
+            const btn = document.getElementById('addItemBtn').querySelector('span:last-child');
+            if (title.includes('Mezmur')) btn.textContent = 'Add Mezmur';
+            else if (title.includes('Wallpaper')) btn.textContent = 'Add Wallpaper';
+            else if (title.includes('Ringtone')) btn.textContent = 'Add Ringtone';
         }
 
-        // Load saved API URL
-        const savedUrl = localStorage.getItem('api_url');
-        if (savedUrl) {
-            API_URL = savedUrl;
-            document.getElementById('apiUrl').value = savedUrl;
-        }
-
-        // Check if already logged in
-        if (authToken) {
-            document.getElementById('loginSection').classList.add('hidden');
-            document.getElementById('mainContent').classList.remove('hidden');
-            loadContent();
+        function updateNavActive(tab) {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('bg-primary/20');
+                item.querySelector('p').classList.remove('text-primary', 'font-bold');
+                item.querySelector('p').classList.add('text-white/80', 'font-medium');
+                item.querySelector('span').classList.remove('text-primary');
+                item.querySelector('span').classList.add('text-white/80');
+            });
+            const nav = document.getElementById(`nav-${tab}`);
+            if (nav) {
+                nav.classList.add('bg-primary/20');
+                nav.querySelector('p').classList.remove('text-white/80', 'font-medium');
+                nav.querySelector('p').classList.add('text-primary', 'font-bold');
+                nav.querySelector('span').classList.remove('text-white/80');
+                nav.querySelector('span').classList.add('text-primary');
+            }
         }
 
         async function login() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const errorDiv = document.getElementById('loginError');
-
             if (!email || !password) {
                 errorDiv.textContent = 'Please enter email and password';
                 errorDiv.classList.remove('hidden');
                 return;
             }
-
             try {
-                const url = getUrlWithBypass(`${API_URL}/api/auth/login`);
-                const response = await fetch(url, {
+                const response = await fetch(`${API_URL}/api/auth/login`, {
                     method: 'POST',
                     headers: getHeaders(false),
                     body: JSON.stringify({ email, password })
                 });
-
                 const data = await response.json();
-
                 if (data.success && data.token) {
                     authToken = data.token;
                     localStorage.setItem('auth_token', authToken);
                     document.getElementById('loginSection').classList.add('hidden');
                     document.getElementById('mainContent').classList.remove('hidden');
+                    document.getElementById('sidebar').classList.remove('hidden');
                     errorDiv.classList.add('hidden');
                     loadContent();
                 } else {
@@ -307,23 +260,27 @@
             localStorage.removeItem('auth_token');
             document.getElementById('loginSection').classList.remove('hidden');
             document.getElementById('mainContent').classList.add('hidden');
+            document.getElementById('sidebar').classList.add('hidden');
         }
 
         function showTab(tabName) {
             currentTab = tabName;
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('border-color: #D4AF37', 'text-color: #D4AF37');
-                btn.classList.add('border-transparent', 'text-gray-400');
-                btn.style.borderColor = 'transparent';
-                btn.style.color = '#9CA3AF';
-            });
-
             document.getElementById(`${tabName}Tab`).classList.remove('hidden');
-            const activeBtn = event.target;
-            activeBtn.style.borderColor = '#D4AF37';
-            activeBtn.style.color = '#D4AF37';
-
+            updateNavActive(tabName);
+            if (tabName === 'mezmurs') {
+                updatePageTitle('Mezmur Management', 'Manage all the mezmurs in the Tselot Tunes app.');
+                document.getElementById('tabsContainer').classList.remove('hidden');
+            } else if (tabName === 'wallpapers') {
+                updatePageTitle('Wallpaper Management', 'Manage all the wallpapers in the Tselot Tunes app.');
+                document.getElementById('tabsContainer').classList.add('hidden');
+            } else if (tabName === 'ringtones') {
+                updatePageTitle('Ringtone Management', 'Manage all the ringtones in the Tselot Tunes app.');
+                document.getElementById('tabsContainer').classList.add('hidden');
+            } else if (tabName === 'stats') {
+                updatePageTitle('Statistics', 'View app statistics and analytics.');
+                document.getElementById('tabsContainer').classList.add('hidden');
+            }
             loadContent();
         }
 
@@ -335,342 +292,221 @@
         }
 
         async function loadMezmurs() {
-            const listDiv = document.getElementById('mezmursList');
-            listDiv.innerHTML = '<p class="text-gray-400">Loading...</p>';
-            
+            const tbody = document.getElementById('mezmursList');
+            tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-white/60">Loading...</td></tr>';
             try {
-                const url = getUrlWithBypass(`${API_URL}/api/mezmurs`);
-                const response = await fetch(url, { headers: getHeaders() });
+                const response = await fetch(`${API_URL}/api/mezmurs`, { headers: getHeaders() });
                 const data = await response.json();
-                
                 if (data.success && data.data && data.data.length > 0) {
-                    listDiv.innerHTML = data.data.map(mezmur => `
-                        <div class="bg-gray-800 rounded-lg p-4 flex items-center justify-between">
-                            <div class="flex items-center space-x-4 flex-1">
-                                <img src="${mezmur.imageUrl}" alt="${mezmur.title}" class="w-16 h-16 rounded object-cover">
-                                <div class="flex-1">
-                                    <h3 class="font-semibold">${mezmur.title}</h3>
-                                    <p class="text-sm text-gray-400">${mezmur.artist}</p>
-                                    <p class="text-xs text-gray-500">${mezmur.category} • Plays: ${mezmur.plays || 0} • Downloads: ${mezmur.downloads || 0}</p>
-                                </div>
-                            </div>
-                                                         <button class="delete-mezmur-btn px-3 py-1 bg-red-600 rounded text-sm ml-4 cursor-pointer" data-id="${mezmur._id}">
-                                  Delete
-                              </button>
-                        </div>
+                    tbody.innerHTML = data.data.map(m => `
+                        <tr class="border-t border-t-white/20 hover:bg-white/5">
+                            <td class="h-[72px] px-4 py-2"><div class="bg-center bg-cover rounded-lg w-10 h-10" style="background-image:url('${m.imageUrl||'https://via.placeholder.com/40'}')"></div></td>
+                            <td class="h-[72px] px-4 py-2 text-white text-sm">${m.title||'N/A'}</td>
+                            <td class="h-[72px] px-4 py-2 text-white/60 text-sm">${m.artist||'Unknown'}</td>
+                            <td class="h-[72px] px-4 py-2"><div class="inline-flex rounded-full py-1 px-3 bg-primary/20 text-primary text-xs font-medium">${m.category||'All'}</div></td>
+                            <td class="h-[72px] px-4 py-2 text-white/60 text-sm">${formatNumber(m.plays||0)}</td>
+                            <td class="h-[72px] px-4 py-2"><button class="delete-mezmur-btn text-red-400 hover:text-red-300 cursor-pointer" data-id="${m._id}"><span class="material-symbols-outlined">delete</span></button></td>
+                        </tr>
                     `).join('');
                 } else {
-                    listDiv.innerHTML = '<p class="text-gray-400">No mezmurs found. Add your first mezmur!</p>';
+                    tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-white/60">No mezmurs found.</td></tr>';
                 }
             } catch (error) {
-                listDiv.innerHTML = `<p class="text-red-400">Error: ${error.message}</p>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-red-400">Error: ${error.message}</td></tr>`;
             }
         }
 
         async function loadWallpapers() {
-            const listDiv = document.getElementById('wallpapersList');
-            listDiv.innerHTML = '<p class="text-gray-400">Loading...</p>';
-            
+            const div = document.getElementById('wallpapersList');
+            div.innerHTML = '<div class="col-span-full text-center text-white/60 py-8">Loading...</div>';
             try {
-                const url = getUrlWithBypass(`${API_URL}/api/wallpapers`);
-                const response = await fetch(url, { headers: getHeaders() });
+                const response = await fetch(`${API_URL}/api/wallpapers`, { headers: getHeaders() });
                 const data = await response.json();
-                
                 if (data.success && data.data && data.data.length > 0) {
-                    listDiv.innerHTML = data.data.map(wallpaper => `
-                        <div class="bg-gray-800 rounded-lg overflow-hidden">
-                            <img src="${wallpaper.imageUrl}" alt="${wallpaper.title}" class="w-full h-48 object-cover">
-                            <div class="p-3">
-                                <h3 class="font-semibold text-sm">${wallpaper.title}</h3>
-                                <p class="text-xs text-gray-400">${wallpaper.category}</p>
-                                <p class="text-xs text-gray-500 mt-1">Downloads: ${wallpaper.downloads || 0}</p>
-                                                                 <button class="delete-wallpaper-btn mt-2 w-full px-2 py-1 bg-red-600 rounded text-xs cursor-pointer" data-id="${wallpaper._id}">
-                                      Delete
-                                  </button>
+                    div.innerHTML = data.data.map(w => `
+                        <div class="bg-[#2b281c] rounded-lg border border-white/20 overflow-hidden">
+                            <div class="bg-cover aspect-video" style="background-image:url('${w.imageUrl||'https://via.placeholder.com/400'}')"></div>
+                            <div class="p-4">
+                                <h3 class="text-white font-semibold text-sm mb-1">${w.title||'Untitled'}</h3>
+                                <p class="text-white/60 text-xs mb-2">${w.category||'Uncategorized'}</p>
+                                <p class="text-white/40 text-xs mb-3">Downloads: ${formatNumber(w.downloads||0)}</p>
+                                <button class="delete-wallpaper-btn w-full px-3 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded text-xs cursor-pointer" data-id="${w._id}">Delete</button>
                             </div>
                         </div>
                     `).join('');
                 } else {
-                    listDiv.innerHTML = '<p class="text-gray-400">No wallpapers found.</p>';
+                    div.innerHTML = '<div class="col-span-full text-center text-white/60 py-8">No wallpapers found.</div>';
                 }
             } catch (error) {
-                listDiv.innerHTML = `<p class="text-red-400">Error: ${error.message}</p>`;
+                div.innerHTML = `<div class="col-span-full text-center text-red-400 py-8">Error: ${error.message}</div>`;
             }
         }
 
         async function loadRingtones() {
-            const listDiv = document.getElementById('ringtonesList');
-            listDiv.innerHTML = '<p class="text-gray-400">Loading...</p>';
-            
+            const tbody = document.getElementById('ringtonesList');
+            tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-white/60">Loading...</td></tr>';
             try {
-                const url = getUrlWithBypass(`${API_URL}/api/ringtones`);
-                const response = await fetch(url, { headers: getHeaders() });
+                const response = await fetch(`${API_URL}/api/ringtones`, { headers: getHeaders() });
                 const data = await response.json();
-                
                 if (data.success && data.data && data.data.length > 0) {
-                    listDiv.innerHTML = data.data.map(ringtone => `
-                        <div class="bg-gray-800 rounded-lg p-4 flex items-center justify-between">
-                            <div class="flex items-center space-x-4 flex-1">
-                                <img src="${ringtone.thumbnailUrl}" alt="${ringtone.title}" class="w-16 h-16 rounded object-cover">
-                                <div class="flex-1">
-                                    <h3 class="font-semibold">${ringtone.title}</h3>
-                                    <p class="text-sm text-gray-400">${ringtone.artist || 'Unknown'}</p>
-                                    <p class="text-xs text-gray-500">${ringtone.category} • ${ringtone.duration}</p>
-                                </div>
-                            </div>
-                                                         <button class="delete-ringtone-btn px-3 py-1 bg-red-600 rounded text-sm ml-4 cursor-pointer" data-id="${ringtone._id}">
-                                  Delete
-                              </button>
-                        </div>
+                    tbody.innerHTML = data.data.map(r => `
+                        <tr class="border-t border-t-white/20 hover:bg-white/5">
+                            <td class="h-[72px] px-4 py-2"><div class="bg-cover rounded-lg w-10 h-10" style="background-image:url('${r.thumbnailUrl||'https://via.placeholder.com/40'}')"></div></td>
+                            <td class="h-[72px] px-4 py-2 text-white text-sm">${r.title||'N/A'}</td>
+                            <td class="h-[72px] px-4 py-2 text-white/60 text-sm">${r.artist||'Unknown'}</td>
+                            <td class="h-[72px] px-4 py-2"><div class="inline-flex rounded-full py-1 px-3 bg-primary/20 text-primary text-xs font-medium">${r.category||'All'}</div></td>
+                            <td class="h-[72px] px-4 py-2 text-white/60 text-sm">${formatNumber(r.downloads||0)}</td>
+                            <td class="h-[72px] px-4 py-2"><button class="delete-ringtone-btn text-red-400 hover:text-red-300 cursor-pointer" data-id="${r._id}"><span class="material-symbols-outlined">delete</span></button></td>
+                        </tr>
                     `).join('');
                 } else {
-                    listDiv.innerHTML = '<p class="text-gray-400">No ringtones found.</p>';
+                    tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-white/60">No ringtones found.</td></tr>';
                 }
             } catch (error) {
-                listDiv.innerHTML = `<p class="text-red-400">Error: ${error.message}</p>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-red-400">Error: ${error.message}</td></tr>`;
             }
         }
 
         async function loadStats() {
-            const statsDiv = document.getElementById('statsContent');
-            statsDiv.innerHTML = '<p class="text-gray-400">Loading...</p>';
-            
+            const div = document.getElementById('statsContent');
+            div.innerHTML = '<div class="text-center text-white/60 py-8">Loading...</div>';
             try {
-                const url = getUrlWithBypass(`${API_URL}/api/statistics/overview`);
-                const response = await fetch(url, {
-                    headers: getHeaders()
-                });
+                const response = await fetch(`${API_URL}/api/statistics/overview`, { headers: getHeaders() });
                 const data = await response.json();
-                
                 if (data.success && data.data) {
-                    const stats = data.data;
-                    statsDiv.innerHTML = `
-                        <div class="grid grid-cols-3 gap-4 mb-6">
-                            <div class="bg-gray-800 rounded-lg p-4">
-                                <h3 class="text-2xl font-bold mb-2" style="color: #D4AF37;">${stats.counts?.mezmurs || 0}</h3>
-                                <p class="text-gray-400">Total Mezmurs</p>
+                    const s = data.data;
+                    div.innerHTML = `
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                            <div class="bg-[#2b281c] border border-white/20 rounded-lg p-6">
+                                <h3 class="text-3xl font-bold mb-2 text-primary">${s.counts?.mezmurs||0}</h3>
+                                <p class="text-white/60">Total Mezmurs</p>
                             </div>
-                            <div class="bg-gray-800 rounded-lg p-4">
-                                <h3 class="text-2xl font-bold mb-2" style="color: #D4AF37;">${stats.counts?.wallpapers || 0}</h3>
-                                <p class="text-gray-400">Total Wallpapers</p>
+                            <div class="bg-[#2b281c] border border-white/20 rounded-lg p-6">
+                                <h3 class="text-3xl font-bold mb-2 text-primary">${s.counts?.wallpapers||0}</h3>
+                                <p class="text-white/60">Total Wallpapers</p>
                             </div>
-                            <div class="bg-gray-800 rounded-lg p-4">
-                                <h3 class="text-2xl font-bold mb-2" style="color: #D4AF37;">${stats.counts?.ringtones || 0}</h3>
-                                <p class="text-gray-400">Total Ringtones</p>
+                            <div class="bg-[#2b281c] border border-white/20 rounded-lg p-6">
+                                <h3 class="text-3xl font-bold mb-2 text-primary">${s.counts?.ringtones||0}</h3>
+                                <p class="text-white/60">Total Ringtones</p>
                             </div>
                         </div>
-                        <div class="bg-gray-800 rounded-lg p-6">
-                            <h3 class="font-bold mb-4 text-lg" style="color: #D4AF37;">Mezmur Statistics</h3>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <p class="text-gray-400">Total Plays</p>
-                                    <p class="text-2xl font-bold">${stats.mezmurs?.totalPlays || 0}</p>
-                                </div>
-                                <div>
-                                    <p class="text-gray-400">Total Downloads</p>
-                                    <p class="text-2xl font-bold">${stats.mezmurs?.totalDownloads || 0}</p>
-                                </div>
-                                <div>
-                                    <p class="text-gray-400">Total Favorites</p>
-                                    <p class="text-2xl font-bold">${stats.mezmurs?.totalFavorites || 0}</p>
-                                </div>
-                                <div>
-                                    <p class="text-gray-400">Total Shares</p>
-                                    <p class="text-2xl font-bold">${stats.mezmurs?.totalShares || 0}</p>
-                                </div>
+                        <div class="bg-[#2b281c] border border-white/20 rounded-lg p-6">
+                            <h3 class="font-bold mb-4 text-lg text-primary">Mezmur Statistics</h3>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div><p class="text-white/60 text-sm mb-1">Total Plays</p><p class="text-2xl font-bold text-white">${formatNumber(s.mezmurs?.totalPlays||0)}</p></div>
+                                <div><p class="text-white/60 text-sm mb-1">Total Downloads</p><p class="text-2xl font-bold text-white">${formatNumber(s.mezmurs?.totalDownloads||0)}</p></div>
+                                <div><p class="text-white/60 text-sm mb-1">Total Favorites</p><p class="text-2xl font-bold text-white">${formatNumber(s.mezmurs?.totalFavorites||0)}</p></div>
+                                <div><p class="text-white/60 text-sm mb-1">Total Shares</p><p class="text-2xl font-bold text-white">${formatNumber(s.mezmurs?.totalShares||0)}</p></div>
                             </div>
                         </div>
                     `;
                 }
             } catch (error) {
-                statsDiv.innerHTML = `<p class="text-red-400">Error: ${error.message}</p>`;
+                div.innerHTML = `<div class="text-red-400 text-center py-8">Error: ${error.message}</div>`;
             }
         }
 
         function showAddMezmurForm() {
-            const example = {
-                title: "Le'Amlakachen Enzemer",
-                artist: "Zemari Tewodros Yosef",
-                category: "All",
-                imageUrl: "https://example.com/image.jpg",
-                audioUrl: "https://example.com/audio.mp3",
-                duration: "3:45",
-                description: "Beautiful Ethiopian Orthodox mezmur"
-            };
-            
-            const formData = prompt(`Enter mezmur data as JSON:\n\nExample:\n${JSON.stringify(example, null, 2)}\n\nPaste your JSON:`, JSON.stringify(example, null, 2));
-            if (formData) {
-                try {
-                    const data = JSON.parse(formData);
-                    addMezmur(data);
-                } catch (e) {
-                    alert('Invalid JSON format: ' + e.message);
-                }
-            }
+            const ex = {title:"Le'Amlakachen Enzemer",artist:"Zemari Tewodros Yosef",category:"All",imageUrl:"https://example.com/image.jpg",audioUrl:"https://example.com/audio.mp3",duration:"3:45",description:"Beautiful Ethiopian Orthodox mezmur"};
+            const fd = prompt(`Enter mezmur data as JSON:\n\nExample:\n${JSON.stringify(ex,null,2)}\n\nPaste your JSON:`,JSON.stringify(ex,null,2));
+            if (fd) try { addMezmur(JSON.parse(fd)); } catch(e) { alert('Invalid JSON: '+e.message); }
         }
 
         async function addMezmur(data) {
             try {
-                const url = getUrlWithBypass(`${API_URL}/api/mezmurs`);
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: getHeaders(),
-                    body: JSON.stringify(data)
-                });
-                const result = await response.json();
-                if (result.success) {
-                    alert('✅ Mezmur added successfully!');
-                    loadMezmurs();
-                } else {
-                    alert('❌ Error: ' + (result.error || 'Unknown error'));
-                }
-            } catch (error) {
-                alert('❌ Error: ' + error.message);
-            }
+                const r = await fetch(`${API_URL}/api/mezmurs`,{method:'POST',headers:getHeaders(),body:JSON.stringify(data)});
+                const res = await r.json();
+                if (res.success) { alert('✅ Added!'); loadMezmurs(); } else alert('❌ Error: '+(res.error||'Unknown'));
+            } catch(e) { alert('❌ Error: '+e.message); }
         }
 
         function showAddWallpaperForm() {
-            const example = {
-                title: "Ethiopian Orthodox Cross",
-                category: "Icons",
-                imageUrl: "https://example.com/wallpaper.jpg",
-                thumbnailUrl: "https://example.com/wallpaper-thumb.jpg",
-                tags: ["cross", "orthodox"]
-            };
-            
-            const formData = prompt(`Enter wallpaper data as JSON:\n\nExample:\n${JSON.stringify(example, null, 2)}\n\nPaste your JSON:`, JSON.stringify(example, null, 2));
-            if (formData) {
-                try {
-                    const data = JSON.parse(formData);
-                    addWallpaper(data);
-                } catch (e) {
-                    alert('Invalid JSON format: ' + e.message);
-                }
-            }
+            const ex = {title:"Ethiopian Orthodox Cross",category:"Icons",imageUrl:"https://example.com/wallpaper.jpg",thumbnailUrl:"https://example.com/wallpaper-thumb.jpg",tags:["cross","orthodox"]};
+            const fd = prompt(`Enter wallpaper data as JSON:\n\nExample:\n${JSON.stringify(ex,null,2)}\n\nPaste your JSON:`,JSON.stringify(ex,null,2));
+            if (fd) try { addWallpaper(JSON.parse(fd)); } catch(e) { alert('Invalid JSON: '+e.message); }
         }
 
         async function addWallpaper(data) {
             try {
-                const url = getUrlWithBypass(`${API_URL}/api/wallpapers`);
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: getHeaders(),
-                    body: JSON.stringify(data)
-                });
-                const result = await response.json();
-                if (result.success) {
-                    alert('✅ Wallpaper added successfully!');
-                    loadWallpapers();
-                } else {
-                    alert('❌ Error: ' + (result.error || 'Unknown error'));
-                }
-            } catch (error) {
-                alert('❌ Error: ' + error.message);
-            }
+                const r = await fetch(`${API_URL}/api/wallpapers`,{method:'POST',headers:getHeaders(),body:JSON.stringify(data)});
+                const res = await r.json();
+                if (res.success) { alert('✅ Added!'); loadWallpapers(); } else alert('❌ Error: '+(res.error||'Unknown'));
+            } catch(e) { alert('❌ Error: '+e.message); }
         }
 
         function showAddRingtoneForm() {
-            const example = {
-                title: "Church Bell",
-                artist: "Traditional",
-                category: "Bells",
-                thumbnailUrl: "https://example.com/thumb.jpg",
-                audioUrl: "https://example.com/ringtone.mp3",
-                duration: "0:30",
-                description: "Ethiopian Orthodox church bell"
-            };
-            
-            const formData = prompt(`Enter ringtone data as JSON:\n\nExample:\n${JSON.stringify(example, null, 2)}\n\nPaste your JSON:`, JSON.stringify(example, null, 2));
-            if (formData) {
-                try {
-                    const data = JSON.parse(formData);
-                    addRingtone(data);
-                } catch (e) {
-                    alert('Invalid JSON format: ' + e.message);
-                }
-            }
+            const ex = {title:"Church Bell",artist:"Traditional",category:"Bells",thumbnailUrl:"https://example.com/thumb.jpg",audioUrl:"https://example.com/ringtone.mp3",duration:"0:30",description:"Ethiopian Orthodox church bell"};
+            const fd = prompt(`Enter ringtone data as JSON:\n\nExample:\n${JSON.stringify(ex,null,2)}\n\nPaste your JSON:`,JSON.stringify(ex,null,2));
+            if (fd) try { addRingtone(JSON.parse(fd)); } catch(e) { alert('Invalid JSON: '+e.message); }
         }
 
         async function addRingtone(data) {
             try {
-                const url = getUrlWithBypass(`${API_URL}/api/ringtones`);
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: getHeaders(),
-                    body: JSON.stringify(data)
-                });
-                const result = await response.json();
-                if (result.success) {
-                    alert('✅ Ringtone added successfully!');
-                    loadRingtones();
-                } else {
-                    alert('❌ Error: ' + (result.error || 'Unknown error'));
-                }
-            } catch (error) {
-                alert('❌ Error: ' + error.message);
-            }
+                const r = await fetch(`${API_URL}/api/ringtones`,{method:'POST',headers:getHeaders(),body:JSON.stringify(data)});
+                const res = await r.json();
+                if (res.success) { alert('✅ Added!'); loadRingtones(); } else alert('❌ Error: '+(res.error||'Unknown'));
+            } catch(e) { alert('❌ Error: '+e.message); }
         }
 
         async function deleteMezmur(id) {
             if (!confirm('Delete this mezmur?')) return;
             try {
-                const url = getUrlWithBypass(`${API_URL}/api/mezmurs/${id}`);
-                const response = await fetch(url, {
-                    method: 'DELETE',
-                    headers: getHeaders()
-                });
-                const result = await response.json();
-                if (result.success || response.ok) {
-                    alert('✅ Deleted successfully!');
-                    loadMezmurs();
-                } else {
-                    alert('❌ Error: ' + (result.error || 'Delete failed'));
-                }
-            } catch (error) {
-                alert('❌ Error: ' + error.message);
-            }
+                const r = await fetch(`${API_URL}/api/mezmurs/${id}`,{method:'DELETE',headers:getHeaders()});
+                const res = await r.json();
+                if (res.success || r.ok) { alert('✅ Deleted!'); loadMezmurs(); } else alert('❌ Error: '+(res.error||'Delete failed'));
+            } catch(e) { alert('❌ Error: '+e.message); }
         }
 
         async function deleteWallpaper(id) {
             if (!confirm('Delete this wallpaper?')) return;
             try {
-                const url = getUrlWithBypass(`${API_URL}/api/wallpapers/${id}`);
-                const response = await fetch(url, {
-                    method: 'DELETE',
-                    headers: getHeaders()
-                });
-                const result = await response.json();
-                if (result.success || response.ok) {
-                    alert('✅ Deleted successfully!');
-                    loadWallpapers();
-                } else {
-                    alert('❌ Error: ' + (result.error || 'Delete failed'));
-                }
-            } catch (error) {
-                alert('❌ Error: ' + error.message);
-            }
+                const r = await fetch(`${API_URL}/api/wallpapers/${id}`,{method:'DELETE',headers:getHeaders()});
+                const res = await r.json();
+                if (res.success || r.ok) { alert('✅ Deleted!'); loadWallpapers(); } else alert('❌ Error: '+(res.error||'Delete failed'));
+            } catch(e) { alert('❌ Error: '+e.message); }
         }
 
         async function deleteRingtone(id) {
             if (!confirm('Delete this ringtone?')) return;
             try {
-                const url = getUrlWithBypass(`${API_URL}/api/ringtones/${id}`);
-                const response = await fetch(url, {
-                    method: 'DELETE',
-                    headers: getHeaders()
-                });
-                const result = await response.json();
-                if (result.success || response.ok) {
-                    alert('✅ Deleted successfully!');
-                    loadRingtones();
-                } else {
-                    alert('❌ Error: ' + (result.error || 'Delete failed'));
-                }
-            } catch (error) {
-                alert('❌ Error: ' + error.message);
-            }
+                const r = await fetch(`${API_URL}/api/ringtones/${id}`,{method:'DELETE',headers:getHeaders()});
+                const res = await r.json();
+                if (res.success || r.ok) { alert('✅ Deleted!'); loadRingtones(); } else alert('❌ Error: '+(res.error||'Delete failed'));
+            } catch(e) { alert('❌ Error: '+e.message); }
         }
+
+        window.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('loginBtn').addEventListener('click', (e) => { e.preventDefault(); login(); });
+            ['email','password'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('keypress', (e) => { if (e.key === 'Enter') login(); });
+            });
+            document.getElementById('nav-mezmurs').addEventListener('click', () => showTab('mezmurs'));
+            document.getElementById('nav-wallpapers').addEventListener('click', () => showTab('wallpapers'));
+            document.getElementById('nav-ringtones').addEventListener('click', () => showTab('ringtones'));
+            document.getElementById('nav-stats').addEventListener('click', () => showTab('stats'));
+            document.getElementById('sidebarLogoutBtn').addEventListener('click', logout);
+            document.getElementById('addItemBtn').addEventListener('click', () => {
+                if (currentTab === 'mezmurs') showAddMezmurForm();
+                else if (currentTab === 'wallpapers') showAddWallpaperForm();
+                else if (currentTab === 'ringtones') showAddRingtoneForm();
+            });
+            document.addEventListener('click', (e) => {
+                const btn = e.target.closest('.delete-mezmur-btn, .delete-wallpaper-btn, .delete-ringtone-btn');
+                if (btn) {
+                    const id = btn.getAttribute('data-id');
+                    if (btn.classList.contains('delete-mezmur-btn')) deleteMezmur(id);
+                    else if (btn.classList.contains('delete-wallpaper-btn')) deleteWallpaper(id);
+                    else if (btn.classList.contains('delete-ringtone-btn')) deleteRingtone(id);
+                }
+            });
+            if (authToken) {
+                document.getElementById('loginSection').classList.add('hidden');
+                document.getElementById('mainContent').classList.remove('hidden');
+                document.getElementById('sidebar').classList.remove('hidden');
+                loadContent();
+            }
+        });
     </script>
 </body>
 </html>
-
