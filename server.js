@@ -22,13 +22,19 @@ if (process.env.MONGODB_URI) {
 const app = express();
 
 // CORS - Must be before other middleware
+// Handle CORS_ORIGINS: if not set, empty, or '*', allow all origins
+const corsOrigins = process.env.CORS_ORIGINS?.trim();
 const corsOptions = {
-  origin: process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : '*',
+  origin: (!corsOrigins || corsOrigins === '*') ? '*' : corsOrigins.split(',').map(o => o.trim()),
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With'],
+  optionsSuccessStatus: 200 // Some legacy browsers choke on 204
 };
 app.use(cors(corsOptions));
+
+// Log CORS configuration (without sensitive data)
+console.log(`🌐 CORS configured: ${corsOptions.origin === '*' ? 'All origins allowed' : `Allowed origins: ${corsOptions.origin.join(', ')}`}`);
 
 // Security middleware (configure helmet to work with CORS)
 app.use(helmet({
