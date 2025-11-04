@@ -21,6 +21,10 @@ if (process.env.MONGODB_URI) {
 
 const app = express();
 
+// Trust proxy - Required for Render and other hosting platforms with reverse proxies
+// This allows express-rate-limit to correctly identify users behind the proxy
+app.set('trust proxy', 1);
+
 // CORS - Must be before other middleware
 // Handle CORS_ORIGINS: if not set, empty, or '*', allow all origins
 const corsOrigins = process.env.CORS_ORIGINS?.trim();
