@@ -62,8 +62,21 @@
           <script>
         // Check if accessed via file:// and show warning
         if (window.location.protocol === 'file:') {
-            document.getElementById('corsWarning').classList.remove('hidden');
+            const warningBanner = document.getElementById('corsWarning');
+            if (warningBanner) {
+                warningBanner.classList.remove('hidden');
+            }
         }
+        
+        // Auto-detect API URL when accessed from remote server
+        window.addEventListener('DOMContentLoaded', function() {
+            const apiUrlInput = document.getElementById('apiUrl');
+            if (apiUrlInput && window.location.protocol !== 'file:') {
+                // If accessed from remote server, use the same origin
+                const currentOrigin = window.location.origin;
+                apiUrlInput.value = currentOrigin;
+            }
+        });
         
         function getHeaders() {
             return { 'Content-Type': 'application/json' };

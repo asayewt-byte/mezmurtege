@@ -121,7 +121,15 @@
     </div>
 
     <script>
-        let API_URL = 'https://mezmurtege.onrender.com';
+        // Auto-detect API URL when accessed from remote server
+        let API_URL;
+        if (window.location.protocol === 'file:' || window.location.hostname === 'localhost') {
+            API_URL = 'https://mezmurtege.onrender.com';
+        } else {
+            // Use same origin when accessed from remote server
+            API_URL = window.location.origin;
+        }
+        
         let authToken = localStorage.getItem('auth_token');
         let currentTab = 'mezmurs';
 
