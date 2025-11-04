@@ -36,10 +36,32 @@ app.use(cors(corsOptions));
 // Log CORS configuration (without sensitive data)
 console.log(`🌐 CORS configured: ${corsOptions.origin === '*' ? 'All origins allowed' : `Allowed origins: ${corsOptions.origin.join(', ')}`}`);
 
-// Security middleware (configure helmet to work with CORS)
+// Security middleware (configure helmet to work with CORS and admin panel)
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
-  crossOriginEmbedderPolicy: false
+  crossOriginEmbedderPolicy: false,
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        "'unsafe-eval'",
+        "https://cdn.tailwindcss.com"
+      ],
+      styleSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        "https://cdn.tailwindcss.com"
+      ],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "https:"],
+      fontSrc: ["'self'", "data:"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"]
+    }
+  }
 }));
 
 // Rate limiting
