@@ -47,26 +47,34 @@
                 <input type="password" id="password" class="w-full px-4 py-2 bg-gray-700 rounded text-white" 
                        placeholder="Choose a strong password">
             </div>
-            <button onclick="testConnection()" class="w-full py-2 px-4 rounded font-semibold mb-3" 
-                    style="background: #4a5568; color: #ffffff;">
-                🔍 Test Connection First
-            </button>
-            <button onclick="createAdmin()" class="w-full py-2 px-4 rounded font-semibold" 
-                    style="background: #D4AF37; color: #121220;">
-                Create Admin Account
-            </button>
+                          <button id="testConnectionBtn" class="w-full py-2 px-4 rounded font-semibold mb-3" 
+                      style="background: #4a5568; color: #ffffff; cursor: pointer;">
+                  🔍 Test Connection First
+              </button>
+              <button id="createAdminBtn" class="w-full py-2 px-4 rounded font-semibold" 
+                      style="background: #D4AF37; color: #121220; cursor: pointer;">
+                  Create Admin Account
+              </button>
             <div id="result" class="mt-4 hidden"></div>
         </div>
     </div>
 
           <script>
-        // Check if accessed via file:// and show warning
-        if (window.location.protocol === 'file:') {
-            const warningBanner = document.getElementById('corsWarning');
-            if (warningBanner) {
-                warningBanner.classList.remove('hidden');
+        // Check if accessed via file:// and show warning (only for file:// protocol)
+        window.addEventListener('DOMContentLoaded', function() {
+            if (window.location.protocol === 'file:') {
+                const warningBanner = document.getElementById('corsWarning');
+                if (warningBanner) {
+                    warningBanner.classList.remove('hidden');
+                }
+            } else {
+                // Hide warning banner if not using file://
+                const warningBanner = document.getElementById('corsWarning');
+                if (warningBanner) {
+                    warningBanner.classList.add('hidden');
+                }
             }
-        }
+        });
         
         // Auto-detect API URL when accessed from remote server
         window.addEventListener('DOMContentLoaded', function() {
@@ -75,6 +83,18 @@
                 // If accessed from remote server, use the same origin
                 const currentOrigin = window.location.origin;
                 apiUrlInput.value = currentOrigin;
+            }
+            
+            // Add event listeners to buttons (instead of inline onclick)
+            const testConnectionBtn = document.getElementById('testConnectionBtn');
+            const createAdminBtn = document.getElementById('createAdminBtn');
+            
+            if (testConnectionBtn) {
+                testConnectionBtn.addEventListener('click', testConnection);
+            }
+            
+            if (createAdminBtn) {
+                createAdminBtn.addEventListener('click', createAdmin);
             }
         });
         
