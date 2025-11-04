@@ -110,7 +110,7 @@ exports.createMezmur = async (req, res, next) => {
       });
       mezmurData.imageUrl = imageResult.secure_url;
       mezmurData.cloudinaryImageId = imageResult.public_id;
-    } else if (req.body.imageUrl) {
+    } else if (req.body.imageUrl && req.body.imageUrl.trim()) {
       // Use provided URL if no file uploaded or Cloudinary not configured
       mezmurData.imageUrl = req.body.imageUrl.trim();
     }
@@ -129,7 +129,7 @@ exports.createMezmur = async (req, res, next) => {
       });
       mezmurData.audioUrl = audioResult.secure_url;
       mezmurData.cloudinaryAudioId = audioResult.public_id;
-    } else if (req.body.audioUrl) {
+    } else if (req.body.audioUrl && req.body.audioUrl.trim()) {
       // Use provided URL if no file uploaded or Cloudinary not configured
       mezmurData.audioUrl = req.body.audioUrl.trim();
     }

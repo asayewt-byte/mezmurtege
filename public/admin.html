@@ -472,15 +472,15 @@
         }
 
         async function addMezmurWithForm(modal) {
-            const title = document.getElementById('formTitle').value;
-            const artist = document.getElementById('formArtist').value;
+            const title = document.getElementById('formTitle').value.trim();
+            const artist = document.getElementById('formArtist').value.trim();
             const category = document.getElementById('formCategory').value;
-            const duration = document.getElementById('formDuration').value || '0:00';
-            const description = document.getElementById('formDescription').value || '';
+            const duration = document.getElementById('formDuration').value.trim() || '0:00';
+            const description = document.getElementById('formDescription').value.trim() || '';
             const imageFile = document.getElementById('formImageFile').files[0];
             const audioFile = document.getElementById('formAudioFile').files[0];
-            const imageUrl = document.getElementById('formImageUrl').value;
-            const audioUrl = document.getElementById('formAudioUrl').value;
+            const imageUrl = document.getElementById('formImageUrl').value.trim();
+            const audioUrl = document.getElementById('formAudioUrl').value.trim();
 
             if (!title || !artist) {
                 alert('Please fill in title and artist');
@@ -503,17 +503,20 @@
                 formData.append('artist', artist);
                 formData.append('category', category);
                 formData.append('duration', duration);
-                formData.append('description', description);
+                if (description) formData.append('description', description);
 
+                // Always append URL fields, even if empty (helps with debugging)
                 if (imageFile) {
                     formData.append('image', imageFile);
-                } else if (imageUrl) {
+                }
+                if (imageUrl) {
                     formData.append('imageUrl', imageUrl);
                 }
 
                 if (audioFile) {
                     formData.append('audio', audioFile);
-                } else if (audioUrl) {
+                }
+                if (audioUrl) {
                     formData.append('audioUrl', audioUrl);
                 }
 
@@ -537,6 +540,7 @@
                     alert('❌ Error: ' + (res.error || 'Unknown error'));
                 }
             } catch (e) {
+                console.error('Upload error:', e);
                 alert('❌ Error: ' + e.message);
             }
         }
