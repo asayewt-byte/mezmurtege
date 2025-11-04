@@ -159,7 +159,31 @@
             // Login button
             const loginBtn = document.getElementById('loginBtn');
             if (loginBtn) {
-                loginBtn.addEventListener('click', login);
+                loginBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    login();
+                });
+                console.log('Login button event listener attached');
+            } else {
+                console.error('Login button not found!');
+            }
+            
+            // Login on Enter key press
+            const passwordInput = document.getElementById('password');
+            const emailInput = document.getElementById('email');
+            if (passwordInput) {
+                passwordInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        login();
+                    }
+                });
+            }
+            if (emailInput) {
+                emailInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        login();
+                    }
+                });
             }
             
             // Logout button

@@ -47,6 +47,7 @@ app.use(helmet({
         "'self'",
         "'unsafe-inline'",
         "'unsafe-eval'",
+        "'unsafe-hashes'",
         "https://cdn.tailwindcss.com"
       ],
       styleSrc: [
