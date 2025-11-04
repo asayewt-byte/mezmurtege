@@ -508,21 +508,32 @@
                 // Always append URL fields, even if empty (helps with debugging)
                 if (imageFile) {
                     formData.append('image', imageFile);
+                    console.log('Sending image file:', imageFile.name, imageFile.size + ' bytes');
                 }
                 if (imageUrl) {
                     formData.append('imageUrl', imageUrl);
+                    console.log('Sending imageUrl:', imageUrl);
                 }
 
                 if (audioFile) {
                     formData.append('audio', audioFile);
+                    console.log('Sending audio file:', audioFile.name, audioFile.size + ' bytes');
                 }
                 if (audioUrl) {
                     formData.append('audioUrl', audioUrl);
+                    console.log('Sending audioUrl:', audioUrl);
+                }
+
+                // Debug: Log all FormData entries
+                console.log('FormData contents:');
+                for (let pair of formData.entries()) {
+                    console.log('  ' + pair[0] + ':', pair[1]);
                 }
 
                 const headers = getHeaders();
                 delete headers['Content-Type']; // Let browser set it for FormData
 
+                console.log('Sending request to:', `${API_URL}/api/mezmurs`);
                 const r = await fetch(`${API_URL}/api/mezmurs`, {
                     method: 'POST',
                     headers: {
