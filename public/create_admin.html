@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Admin Account</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #121220 0%, #1a1a2e 100%);
+            min-height: 100vh;
+        }
+          </style>
+</head>
+<body class="text-white flex items-center justify-center">
+      <!-- CORS Warning Banner -->
+      <div id="corsWarning" class="fixed top-0 left-0 right-0 bg-red-900 text-white p-4 text-center z-50 hidden">
+          <strong>⚠️ CORS Error Detected!</strong><br>
+          <span class="text-sm">You're accessing this page via <code>file://</code> protocol. Please use: <a href="http://localhost:8000/create_admin.html" class="text-yellow-400 underline">http://localhost:8000/create_admin.html</a></span>
+          <button onclick="document.getElementById('corsWarning').classList.add('hidden')" class="ml-4 text-yellow-400">✕</button>
+      </div>
+      
+      <div class="bg-gray-800 rounded-lg p-8 max-w-md w-full">
+        <h1 class="text-3xl font-bold mb-6" style="color: #D4AF37;">Create Admin Account</h1>
+        
+        <div class="mb-4">
+            <label class="block text-sm font-medium mb-2">Backend API URL (Render)</label>
+            <input type="text" id="apiUrl" value="https://mezmurtege.onrender.com" 
+                   class="w-full px-4 py-2 bg-gray-700 rounded text-white mb-2"
+                   placeholder="https://mezmurtege.onrender.com">
+            <p class="text-xs text-gray-400 mb-2">Your Render backend is configured</p>
+        </div>
+
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium mb-2">Your Name</label>
+                <input type="text" id="name" class="w-full px-4 py-2 bg-gray-700 rounded text-white" 
+                       placeholder="Admin User">
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-2">Email</label>
+                <input type="email" id="email" class="w-full px-4 py-2 bg-gray-700 rounded text-white" 
+                       placeholder="admin@tselottunes.com">
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-2">Password</label>
+                <input type="password" id="password" class="w-full px-4 py-2 bg-gray-700 rounded text-white" 
+                       placeholder="Choose a strong password">
+            </div>
+            <button onclick="testConnection()" class="w-full py-2 px-4 rounded font-semibold mb-3" 
+                    style="background: #4a5568; color: #ffffff;">
+                🔍 Test Connection First
+            </button>
+            <button onclick="createAdmin()" class="w-full py-2 px-4 rounded font-semibold" 
+                    style="background: #D4AF37; color: #121220;">
+                Create Admin Account
+            </button>
+            <div id="result" class="mt-4 hidden"></div>
+        </div>
+    </div>
+
+          <script>
+        // Check if accessed via file:// and show warning
+        if (window.location.protocol === 'file:') {
+            document.getElementById('corsWarning').classList.remove('hidden');
+        }
+        
+        function getHeaders() {
+            return { 'Content-Type': 'application/json' };
+        }
+
+        function getUrlWithBypass(url) {
+            // No bypass needed for Render
+            return url;
+        }
+
+        async function testConnection() {
+            const apiUrl = document.getElementById('apiUrl').value.trim();
+            const resultDiv = document.getElementById('result');
+            
+            if (!apiUrl) {
+                resultDiv.innerHTML = '<p class="text-red-400">Please enter a backend URL</p>';
+                resultDiv.classList.remove('hidden');
+                return;
+            }
+            
+            resultDiv.innerHTML = '<p class="text-gray-400">Testing connection to: ' + apiUrl + '...</p>';
+            resultDiv.classList.remove('hidden');
+
+            try {
+                // Test 1: Try root endpoint
+                const rootUrl = getUrlWithBypass(apiUrl);
+                const rootResponse = await fetch(rootUrl, {
+                    method: 'GET',
+                    headers: getHeaders(),
+                    mode: 'cors'
+                });
+                
+                const rootContentType = rootResponse.headers.get('content-type');
+                const isHtml = rootContentType && rootContentType.includes('text/html');
+                
+                if (isHtml) {
+                    resultDiv.innerHTML = `
+                        <div class="bg-red-900 rounded p-4">
+                            <p class="text-red-300 font-bold mb-2">❌ Server returned HTML instead of JSON</p>
+                            <p class="text-sm text-gray-300 mb-2">This usually means the URL is incorrect or the service is not deployed.</p>
+                            <p class="text-sm text-gray-400 mt-2">
+                                <strong>To fix this:</strong><br>
+                                1. Check that your Render service URL is correct<br>
+                                2. Make sure your service is deployed on Render<br>
+                                3. Visit the URL in your browser to see what it returns<br>
+                                4. Check Render dashboard → Logs for errors<br>
+                                5. Make sure environment variables are set correctly
+                            </p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Test 2: Try health endpoint
+                const healthUrl = getUrlWithBypass(`${apiUrl}/health`);
+                const healthResponse = await fetch(healthUrl, {
+                    method: 'GET',
+                    headers: getHeaders(),
+                    mode: 'cors'
+                });
+
+                if (healthResponse.ok) {
+                    const data = await healthResponse.json();
+                    resultDiv.innerHTML = `
+                        <div class="bg-green-900 rounded p-4">
+                            <p class="text-green-300 font-bold mb-2">✅ Connection successful!</p>
+                            <p class="text-sm text-gray-300">Server is running</p>
+                            <p class="text-sm text-gray-300">Database: ${data.database || 'unknown'}</p>
+                            <p class="text-sm text-gray-300 mt-2">Status: ${data.status || 'OK'}</p>
+                        </div>
+                    `;
+                } else {
+                    const errorText = await healthResponse.text();
+                    resultDiv.innerHTML = `
+                        <div class="bg-yellow-900 rounded p-4">
+                            <p class="text-yellow-300 font-bold mb-2">⚠️ Server responded with error</p>
+                            <p class="text-sm text-gray-300">Status: ${healthResponse.status}</p>
+                            <p class="text-sm text-gray-300">Response: ${errorText.substring(0, 100)}</p>
+                            <p class="text-sm text-gray-400 mt-2">Check Vercel deployment logs for details</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                let diagnostic = '';
+                let specificFix = '';
+                
+                // Provide specific diagnostics
+                if (error.message.includes('CORS') || error.message.includes('CORS')) {
+                    diagnostic = 'CORS error detected.';
+                    specificFix = `
+                        <strong>CORS Fix:</strong><br>
+                        - Go to Render Dashboard → Your Service → Environment<br>
+                        - Set <code class="bg-gray-900 px-1 rounded">CORS_ORIGINS</code> to: <code class="bg-gray-900 px-1 rounded">*</code><br>
+                        - Or add: <code class="bg-gray-900 px-1 rounded">null</code> (for file:// origins)<br>
+                        - Save and wait for service to redeploy<br>
+                    `;
+                } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                    diagnostic = 'Network error detected.';
+                    specificFix = `
+                        <strong>Possible causes:</strong><br>
+                        1. <strong>Service is sleeping</strong> (Free tier - wait 30-60 seconds and try again)<br>
+                        2. <strong>CORS issue</strong> - Check CORS_ORIGINS in Render environment variables<br>
+                        3. <strong>Wrong URL</strong> - Verify the URL is: <code class="bg-gray-900 px-1 rounded">https://mezmurtege.onrender.com</code><br>
+                        <br>
+                        <strong>Quick test:</strong><br>
+                        - Open <a href="https://mezmurtege.onrender.com/health" target="_blank" class="text-yellow-400 underline">https://mezmurtege.onrender.com/health</a> in a new tab<br>
+                        - If it works there, it's a CORS issue. Set CORS_ORIGINS to <code class="bg-gray-900 px-1 rounded">*</code> in Render.<br>
+                    `;
+                }
+                
+                resultDiv.innerHTML = `
+                    <div class="bg-red-900 rounded p-4">
+                        <p class="text-red-300 font-bold mb-2">❌ Connection failed</p>
+                        <p class="text-sm text-gray-300 mb-2">Error: ${error.message}</p>
+                        ${diagnostic ? `<p class="text-sm text-yellow-300 mb-2">${diagnostic}</p>` : ''}
+                        ${specificFix ? `<p class="text-sm text-gray-400 mt-2">${specificFix}</p>` : ''}
+                        <p class="text-sm text-gray-400 mt-2">
+                            <strong>Step-by-step fix:</strong><br>
+                            <br>
+                            <strong>1. Verify Render Service:</strong><br>
+                            - Go to <a href="https://dashboard.render.com" class="text-yellow-400 underline" target="_blank">Render Dashboard</a><br>
+                            - Check that your service is deployed and running (green status)<br>
+                            - Copy the service URL (should end with .onrender.com)<br>
+                            <br>
+                            <strong>2. Check Environment Variables:</strong><br>
+                            - Render Dashboard → Your Service → <strong>Environment</strong><br>
+                            - Make sure <code class="bg-gray-900 px-1 rounded">MONGODB_URI</code>, <code class="bg-gray-900 px-1 rounded">JWT_SECRET</code>, and <code class="bg-gray-900 px-1 rounded">CORS_ORIGINS</code> are set<br>
+                            <br>
+                            <strong>3. Check Service Logs:</strong><br>
+                            - Render Dashboard → Your Service → <strong>Logs</strong><br>
+                            - Look for errors or connection issues<br>
+                            <br>
+                            <strong>4. Test in Browser:</strong><br>
+                            - Visit your Render URL in a browser<br>
+                            - You should see JSON with API endpoints<br>
+                            - If you see an error page, check the logs<br>
+                            <br>
+                            <strong>5. For Free Tier:</strong><br>
+                            - Free tier services sleep after 15 min of inactivity<br>
+                            - First request after sleep takes 30-60 seconds (cold start)<br>
+                            - Wait a moment and try again
+                        </p>
+                    </div>
+                `;
+            }
+        }
+
+        async function createAdmin() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const resultDiv = document.getElementById('result');
+
+            if (!name || !email || !password) {
+                resultDiv.innerHTML = '<p class="text-red-400">Please fill in all fields</p>';
+                resultDiv.classList.remove('hidden');
+                return;
+            }
+
+            if (password.length < 6) {
+                resultDiv.innerHTML = '<p class="text-red-400">Password must be at least 6 characters</p>';
+                resultDiv.classList.remove('hidden');
+                return;
+            }
+
+            resultDiv.innerHTML = '<p class="text-gray-400">Creating account...</p>';
+            resultDiv.classList.remove('hidden');
+
+            try {
+                const url = getUrlWithBypass(`${apiUrl}/api/auth/register`);
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: getHeaders(),
+                    body: JSON.stringify({ name, email, password })
+                });
+
+                // Check if response is HTML (password protection page)
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('text/html')) {
+                    resultDiv.innerHTML = `
+                        <div class="bg-red-900 rounded p-4">
+                            <p class="text-red-300 font-bold mb-2">❌ Server is password protected</p>
+                            <p class="text-sm text-gray-300 mb-2">The backend requires authentication to access.</p>
+                            <p class="text-sm text-gray-400 mt-2">
+                                <strong>To fix this:</strong><br>
+                                1. Go to <a href="https://vercel.com/dashboard" class="text-yellow-400 underline" target="_blank">Vercel Dashboard</a><br>
+                                2. Select your project<br>
+                                3. Go to Settings → Deployment Protection<br>
+                                4. Disable password protection or set to "Production only"<br>
+                                5. Try again
+                            </p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="bg-green-900 rounded p-4">
+                            <p class="text-green-300 font-bold mb-2">✅ Admin account created successfully!</p>
+                            <p class="text-sm text-gray-300 mb-2">Email: ${email}</p>
+                            <p class="text-sm text-gray-300">Role: ${data.data.role}</p>
+                            <p class="text-sm text-gray-400 mt-4">You can now login to the admin panel using admin.html</p>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<p class="text-red-400">❌ Error: ${data.error || 'Unknown error'}</p>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="bg-red-900 rounded p-4">
+                        <p class="text-red-300 font-bold mb-2">❌ Connection error: ${error.message}</p>
+                        <p class="text-sm text-gray-300 mb-2">The backend is not accessible.</p>
+                        <p class="text-sm text-gray-400 mt-2">
+                            <strong>This usually means:</strong><br>
+                            1. Vercel password protection is enabled (most common)<br>
+                            2. Backend URL is incorrect<br>
+                            3. Backend is not deployed<br>
+                            <br>
+                            <strong>Quick fix:</strong><br>
+                            Click "Test Connection" button below to check if the server is accessible.
+                        </p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
+

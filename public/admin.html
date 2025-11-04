@@ -3,20 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tselot Tunes - Admin Panel</title>
+    <title>Tselot Tunes - Remote Admin Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
             background: linear-gradient(135deg, #121220 0%, #1a1a2e 100%);
+            min-height: 100vh;
         }
-    </style>
+          </style>
 </head>
-<body class="min-h-screen text-white">
-    <div class="container mx-auto px-4 py-8 max-w-6xl">
+<body class="text-white">
+      <!-- CORS Warning Banner -->
+      <div id="corsWarning" class="fixed top-0 left-0 right-0 bg-red-900 text-white p-4 text-center z-50 hidden">
+          <strong>⚠️ CORS Error Detected!</strong><br>
+          <span class="text-sm">You're accessing this page via <code>file://</code> protocol. Please use: <a href="http://localhost:8000/admin.html" class="text-yellow-400 underline">http://localhost:8000/admin.html</a></span>
+          <button onclick="document.getElementById('corsWarning').classList.add('hidden')" class="ml-4 text-yellow-400">✕</button>
+      </div>
+      
+      <div class="container mx-auto px-4 py-8 max-w-6xl">
         <!-- Header -->
         <div class="mb-8">
             <h1 class="text-4xl font-bold mb-2" style="color: #D4AF37;">🎵 Tselot Tunes Admin</h1>
-            <p class="text-gray-400">Manage your Ethiopian Orthodox content remotely</p>
+            <p class="text-gray-400">Manage your content remotely - Open this file in any browser</p>
+        </div>
+
+        <!-- API URL Input -->
+        <div class="bg-gray-800 rounded-lg p-4 mb-6">
+            <label class="block text-sm font-medium mb-2">Backend API URL (Render)</label>
+            <input type="text" id="apiUrl" value="https://mezmurtege.onrender.com" 
+                   class="w-full px-4 py-2 bg-gray-700 rounded text-white mb-2"
+                   placeholder="https://mezmurtege.onrender.com">
+            <p class="text-xs text-gray-400 mb-2">Your Render backend is configured</p>
+            <button onclick="updateApiUrl()" class="px-4 py-2 rounded font-semibold" style="background: #D4AF37; color: #121220;">
+                Update URL
+            </button>
         </div>
 
         <!-- Login Section -->
@@ -54,6 +74,9 @@
                 <button onclick="showTab('stats')" class="tab-btn px-4 py-2 border-b-2 border-transparent text-gray-400">
                     Statistics
                 </button>
+                <button onclick="logout()" class="ml-auto px-4 py-2 text-red-400">
+                    Logout
+                </button>
             </div>
 
             <!-- Mezmurs Tab -->
@@ -75,7 +98,7 @@
                         + Add Wallpaper
                     </button>
                 </div>
-                <div id="wallpapersList" class="grid grid-cols-3 gap-4"></div>
+                <div id="wallpapersList" class="grid grid-cols-2 md:grid-cols-3 gap-4"></div>
             </div>
 
             <!-- Ringtones Tab -->
@@ -98,9 +121,35 @@
     </div>
 
     <script>
-        const API_URL = 'https://backend-5fkxzq6mb-teges-projects.vercel.app';
+        let API_URL = 'https://mezmurtege.onrender.com';
         let authToken = localStorage.getItem('auth_token');
         let currentTab = 'mezmurs';
+
+        function getHeaders(includeAuth = true) {
+            const headers = { 'Content-Type': 'application/json' };
+            if (includeAuth && authToken) {
+                headers['Authorization'] = `Bearer ${authToken}`;
+            }
+            return headers;
+        }
+
+        function getUrlWithBypass(url) {
+            // No bypass needed for Render
+            return url;
+        }
+
+        function updateApiUrl() {
+            API_URL = document.getElementById('apiUrl').value;
+            localStorage.setItem('api_url', API_URL);
+            alert('API URL updated!');
+        }
+
+        // Load saved API URL
+        const savedUrl = localStorage.getItem('api_url');
+        if (savedUrl) {
+            API_URL = savedUrl;
+            document.getElementById('apiUrl').value = savedUrl;
+        }
 
         // Check if already logged in
         if (authToken) {
@@ -114,10 +163,17 @@
             const password = document.getElementById('password').value;
             const errorDiv = document.getElementById('loginError');
 
+            if (!email || !password) {
+                errorDiv.textContent = 'Please enter email and password';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
             try {
-                const response = await fetch(`${API_URL}/api/auth/login`, {
+                const url = getUrlWithBypass(`${API_URL}/api/auth/login`);
+                const response = await fetch(url, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: getHeaders(false),
                     body: JSON.stringify({ email, password })
                 });
 
@@ -128,6 +184,7 @@
                     localStorage.setItem('auth_token', authToken);
                     document.getElementById('loginSection').classList.add('hidden');
                     document.getElementById('mainContent').classList.remove('hidden');
+                    errorDiv.classList.add('hidden');
                     loadContent();
                 } else {
                     errorDiv.textContent = data.error || 'Login failed';
@@ -139,18 +196,25 @@
             }
         }
 
+        function logout() {
+            authToken = null;
+            localStorage.removeItem('auth_token');
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('mainContent').classList.add('hidden');
+        }
+
         function showTab(tabName) {
             currentTab = tabName;
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.classList.remove('border-color: #D4AF37', 'text-color: #D4AF37');
                 btn.classList.add('border-transparent', 'text-gray-400');
+                btn.style.borderColor = 'transparent';
+                btn.style.color = '#9CA3AF';
             });
 
             document.getElementById(`${tabName}Tab`).classList.remove('hidden');
             const activeBtn = event.target;
-            activeBtn.classList.remove('border-transparent', 'text-gray-400');
-            activeBtn.classList.add('border-color: #D4AF37', 'text-color: #D4AF37');
             activeBtn.style.borderColor = '#D4AF37';
             activeBtn.style.color = '#D4AF37';
 
@@ -165,25 +229,26 @@
         }
 
         async function loadMezmurs() {
+            const listDiv = document.getElementById('mezmursList');
+            listDiv.innerHTML = '<p class="text-gray-400">Loading...</p>';
+            
             try {
-                const response = await fetch(`${API_URL}/api/mezmurs`, {
-                    headers: { 'Authorization': `Bearer ${authToken}` }
-                });
+                const url = getUrlWithBypass(`${API_URL}/api/mezmurs`);
+                const response = await fetch(url, { headers: getHeaders() });
                 const data = await response.json();
-                const listDiv = document.getElementById('mezmursList');
                 
-                if (data.success && data.data) {
+                if (data.success && data.data && data.data.length > 0) {
                     listDiv.innerHTML = data.data.map(mezmur => `
                         <div class="bg-gray-800 rounded-lg p-4 flex items-center justify-between">
-                            <div class="flex items-center space-x-4">
+                            <div class="flex items-center space-x-4 flex-1">
                                 <img src="${mezmur.imageUrl}" alt="${mezmur.title}" class="w-16 h-16 rounded object-cover">
-                                <div>
+                                <div class="flex-1">
                                     <h3 class="font-semibold">${mezmur.title}</h3>
                                     <p class="text-sm text-gray-400">${mezmur.artist}</p>
-                                    <p class="text-xs text-gray-500">${mezmur.category} • Plays: ${mezmur.plays || 0}</p>
+                                    <p class="text-xs text-gray-500">${mezmur.category} • Plays: ${mezmur.plays || 0} • Downloads: ${mezmur.downloads || 0}</p>
                                 </div>
                             </div>
-                            <button onclick="deleteMezmur('${mezmur._id}')" class="px-3 py-1 bg-red-600 rounded text-sm">
+                            <button onclick="deleteMezmur('${mezmur._id}')" class="px-3 py-1 bg-red-600 rounded text-sm ml-4">
                                 Delete
                             </button>
                         </div>
@@ -192,25 +257,27 @@
                     listDiv.innerHTML = '<p class="text-gray-400">No mezmurs found. Add your first mezmur!</p>';
                 }
             } catch (error) {
-                console.error('Error loading mezmurs:', error);
+                listDiv.innerHTML = `<p class="text-red-400">Error: ${error.message}</p>`;
             }
         }
 
         async function loadWallpapers() {
+            const listDiv = document.getElementById('wallpapersList');
+            listDiv.innerHTML = '<p class="text-gray-400">Loading...</p>';
+            
             try {
-                const response = await fetch(`${API_URL}/api/wallpapers`, {
-                    headers: { 'Authorization': `Bearer ${authToken}` }
-                });
+                const url = getUrlWithBypass(`${API_URL}/api/wallpapers`);
+                const response = await fetch(url, { headers: getHeaders() });
                 const data = await response.json();
-                const listDiv = document.getElementById('wallpapersList');
                 
-                if (data.success && data.data) {
+                if (data.success && data.data && data.data.length > 0) {
                     listDiv.innerHTML = data.data.map(wallpaper => `
                         <div class="bg-gray-800 rounded-lg overflow-hidden">
                             <img src="${wallpaper.imageUrl}" alt="${wallpaper.title}" class="w-full h-48 object-cover">
                             <div class="p-3">
                                 <h3 class="font-semibold text-sm">${wallpaper.title}</h3>
                                 <p class="text-xs text-gray-400">${wallpaper.category}</p>
+                                <p class="text-xs text-gray-500 mt-1">Downloads: ${wallpaper.downloads || 0}</p>
                                 <button onclick="deleteWallpaper('${wallpaper._id}')" class="mt-2 w-full px-2 py-1 bg-red-600 rounded text-xs">
                                     Delete
                                 </button>
@@ -221,30 +288,31 @@
                     listDiv.innerHTML = '<p class="text-gray-400">No wallpapers found.</p>';
                 }
             } catch (error) {
-                console.error('Error loading wallpapers:', error);
+                listDiv.innerHTML = `<p class="text-red-400">Error: ${error.message}</p>`;
             }
         }
 
         async function loadRingtones() {
+            const listDiv = document.getElementById('ringtonesList');
+            listDiv.innerHTML = '<p class="text-gray-400">Loading...</p>';
+            
             try {
-                const response = await fetch(`${API_URL}/api/ringtones`, {
-                    headers: { 'Authorization': `Bearer ${authToken}` }
-                });
+                const url = getUrlWithBypass(`${API_URL}/api/ringtones`);
+                const response = await fetch(url, { headers: getHeaders() });
                 const data = await response.json();
-                const listDiv = document.getElementById('ringtonesList');
                 
-                if (data.success && data.data) {
+                if (data.success && data.data && data.data.length > 0) {
                     listDiv.innerHTML = data.data.map(ringtone => `
                         <div class="bg-gray-800 rounded-lg p-4 flex items-center justify-between">
-                            <div class="flex items-center space-x-4">
+                            <div class="flex items-center space-x-4 flex-1">
                                 <img src="${ringtone.thumbnailUrl}" alt="${ringtone.title}" class="w-16 h-16 rounded object-cover">
-                                <div>
+                                <div class="flex-1">
                                     <h3 class="font-semibold">${ringtone.title}</h3>
                                     <p class="text-sm text-gray-400">${ringtone.artist || 'Unknown'}</p>
-                                    <p class="text-xs text-gray-500">${ringtone.category} • Duration: ${ringtone.duration}</p>
+                                    <p class="text-xs text-gray-500">${ringtone.category} • ${ringtone.duration}</p>
                                 </div>
                             </div>
-                            <button onclick="deleteRingtone('${ringtone._id}')" class="px-3 py-1 bg-red-600 rounded text-sm">
+                            <button onclick="deleteRingtone('${ringtone._id}')" class="px-3 py-1 bg-red-600 rounded text-sm ml-4">
                                 Delete
                             </button>
                         </div>
@@ -253,217 +321,247 @@
                     listDiv.innerHTML = '<p class="text-gray-400">No ringtones found.</p>';
                 }
             } catch (error) {
-                console.error('Error loading ringtones:', error);
+                listDiv.innerHTML = `<p class="text-red-400">Error: ${error.message}</p>`;
             }
         }
 
         async function loadStats() {
+            const statsDiv = document.getElementById('statsContent');
+            statsDiv.innerHTML = '<p class="text-gray-400">Loading...</p>';
+            
             try {
-                const response = await fetch(`${API_URL}/api/statistics/overview`, {
-                    headers: { 'Authorization': `Bearer ${authToken}` }
+                const url = getUrlWithBypass(`${API_URL}/api/statistics/overview`);
+                const response = await fetch(url, {
+                    headers: getHeaders()
                 });
                 const data = await response.json();
-                const statsDiv = document.getElementById('statsContent');
                 
                 if (data.success && data.data) {
                     const stats = data.data;
                     statsDiv.innerHTML = `
                         <div class="grid grid-cols-3 gap-4 mb-6">
                             <div class="bg-gray-800 rounded-lg p-4">
-                                <h3 class="text-lg font-bold" style="color: #D4AF37;">${stats.counts?.mezmurs || 0}</h3>
+                                <h3 class="text-2xl font-bold mb-2" style="color: #D4AF37;">${stats.counts?.mezmurs || 0}</h3>
                                 <p class="text-gray-400">Total Mezmurs</p>
                             </div>
                             <div class="bg-gray-800 rounded-lg p-4">
-                                <h3 class="text-lg font-bold" style="color: #D4AF37;">${stats.counts?.wallpapers || 0}</h3>
+                                <h3 class="text-2xl font-bold mb-2" style="color: #D4AF37;">${stats.counts?.wallpapers || 0}</h3>
                                 <p class="text-gray-400">Total Wallpapers</p>
                             </div>
                             <div class="bg-gray-800 rounded-lg p-4">
-                                <h3 class="text-lg font-bold" style="color: #D4AF37;">${stats.counts?.ringtones || 0}</h3>
+                                <h3 class="text-2xl font-bold mb-2" style="color: #D4AF37;">${stats.counts?.ringtones || 0}</h3>
                                 <p class="text-gray-400">Total Ringtones</p>
                             </div>
                         </div>
-                        <div class="bg-gray-800 rounded-lg p-4">
-                            <h3 class="font-bold mb-2">Mezmur Stats</h3>
-                            <p>Total Plays: ${stats.mezmurs?.totalPlays || 0}</p>
-                            <p>Total Downloads: ${stats.mezmurs?.totalDownloads || 0}</p>
-                            <p>Total Favorites: ${stats.mezmurs?.totalFavorites || 0}</p>
+                        <div class="bg-gray-800 rounded-lg p-6">
+                            <h3 class="font-bold mb-4 text-lg" style="color: #D4AF37;">Mezmur Statistics</h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-gray-400">Total Plays</p>
+                                    <p class="text-2xl font-bold">${stats.mezmurs?.totalPlays || 0}</p>
+                                </div>
+                                <div>
+                                    <p class="text-gray-400">Total Downloads</p>
+                                    <p class="text-2xl font-bold">${stats.mezmurs?.totalDownloads || 0}</p>
+                                </div>
+                                <div>
+                                    <p class="text-gray-400">Total Favorites</p>
+                                    <p class="text-2xl font-bold">${stats.mezmurs?.totalFavorites || 0}</p>
+                                </div>
+                                <div>
+                                    <p class="text-gray-400">Total Shares</p>
+                                    <p class="text-2xl font-bold">${stats.mezmurs?.totalShares || 0}</p>
+                                </div>
+                            </div>
                         </div>
                     `;
                 }
             } catch (error) {
-                console.error('Error loading stats:', error);
+                statsDiv.innerHTML = `<p class="text-red-400">Error: ${error.message}</p>`;
             }
         }
 
         function showAddMezmurForm() {
-            const form = prompt(`Enter mezmur data as JSON:
-{
-  "title": "Mezmur Title",
-  "artist": "Artist Name",
-  "category": "All",
-  "imageUrl": "https://...",
-  "audioUrl": "https://...",
-  "duration": "3:45"
-}`);
-            if (form) {
+            const example = {
+                title: "Le'Amlakachen Enzemer",
+                artist: "Zemari Tewodros Yosef",
+                category: "All",
+                imageUrl: "https://example.com/image.jpg",
+                audioUrl: "https://example.com/audio.mp3",
+                duration: "3:45",
+                description: "Beautiful Ethiopian Orthodox mezmur"
+            };
+            
+            const formData = prompt(`Enter mezmur data as JSON:\n\nExample:\n${JSON.stringify(example, null, 2)}\n\nPaste your JSON:`, JSON.stringify(example, null, 2));
+            if (formData) {
                 try {
-                    const data = JSON.parse(form);
+                    const data = JSON.parse(formData);
                     addMezmur(data);
                 } catch (e) {
-                    alert('Invalid JSON format');
+                    alert('Invalid JSON format: ' + e.message);
                 }
             }
         }
 
         async function addMezmur(data) {
             try {
-                const response = await fetch(`${API_URL}/api/mezmurs`, {
+                const url = getUrlWithBypass(`${API_URL}/api/mezmurs`);
+                const response = await fetch(url, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${authToken}`
-                    },
+                    headers: getHeaders(),
                     body: JSON.stringify(data)
                 });
                 const result = await response.json();
                 if (result.success) {
-                    alert('Mezmur added successfully!');
+                    alert('✅ Mezmur added successfully!');
                     loadMezmurs();
                 } else {
-                    alert('Error: ' + result.error);
+                    alert('❌ Error: ' + (result.error || 'Unknown error'));
                 }
             } catch (error) {
-                alert('Error: ' + error.message);
-            }
-        }
-
-        async function deleteMezmur(id) {
-            if (!confirm('Delete this mezmur?')) return;
-            try {
-                const response = await fetch(`${API_URL}/api/mezmurs/${id}`, {
-                    method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${authToken}` }
-                });
-                if (response.ok) {
-                    alert('Deleted successfully!');
-                    loadMezmurs();
-                }
-            } catch (error) {
-                alert('Error: ' + error.message);
-            }
-        }
-
-        async function deleteWallpaper(id) {
-            if (!confirm('Delete this wallpaper?')) return;
-            try {
-                const response = await fetch(`${API_URL}/api/wallpapers/${id}`, {
-                    method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${authToken}` }
-                });
-                if (response.ok) {
-                    alert('Deleted successfully!');
-                    loadWallpapers();
-                }
-            } catch (error) {
-                alert('Error: ' + error.message);
-            }
-        }
-
-        async function deleteRingtone(id) {
-            if (!confirm('Delete this ringtone?')) return;
-            try {
-                const response = await fetch(`${API_URL}/api/ringtones/${id}`, {
-                    method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${authToken}` }
-                });
-                if (response.ok) {
-                    alert('Deleted successfully!');
-                    loadRingtones();
-                }
-            } catch (error) {
-                alert('Error: ' + error.message);
+                alert('❌ Error: ' + error.message);
             }
         }
 
         function showAddWallpaperForm() {
-            const form = prompt(`Enter wallpaper data as JSON:
-{
-  "title": "Wallpaper Title",
-  "category": "Icons",
-  "imageUrl": "https://...",
-  "thumbnailUrl": "https://..."
-}`);
-            if (form) {
+            const example = {
+                title: "Ethiopian Orthodox Cross",
+                category: "Icons",
+                imageUrl: "https://example.com/wallpaper.jpg",
+                thumbnailUrl: "https://example.com/wallpaper-thumb.jpg",
+                tags: ["cross", "orthodox"]
+            };
+            
+            const formData = prompt(`Enter wallpaper data as JSON:\n\nExample:\n${JSON.stringify(example, null, 2)}\n\nPaste your JSON:`, JSON.stringify(example, null, 2));
+            if (formData) {
                 try {
-                    const data = JSON.parse(form);
+                    const data = JSON.parse(formData);
                     addWallpaper(data);
                 } catch (e) {
-                    alert('Invalid JSON format');
+                    alert('Invalid JSON format: ' + e.message);
                 }
             }
         }
 
         async function addWallpaper(data) {
             try {
-                const response = await fetch(`${API_URL}/api/wallpapers`, {
+                const url = getUrlWithBypass(`${API_URL}/api/wallpapers`);
+                const response = await fetch(url, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${authToken}`
-                    },
+                    headers: getHeaders(),
                     body: JSON.stringify(data)
                 });
                 const result = await response.json();
                 if (result.success) {
-                    alert('Wallpaper added successfully!');
+                    alert('✅ Wallpaper added successfully!');
                     loadWallpapers();
                 } else {
-                    alert('Error: ' + result.error);
+                    alert('❌ Error: ' + (result.error || 'Unknown error'));
                 }
             } catch (error) {
-                alert('Error: ' + error.message);
+                alert('❌ Error: ' + error.message);
             }
         }
 
         function showAddRingtoneForm() {
-            const form = prompt(`Enter ringtone data as JSON:
-{
-  "title": "Ringtone Title",
-  "artist": "Artist Name",
-  "category": "Chants",
-  "thumbnailUrl": "https://...",
-  "audioUrl": "https://...",
-  "duration": "0:30"
-}`);
-            if (form) {
+            const example = {
+                title: "Church Bell",
+                artist: "Traditional",
+                category: "Bells",
+                thumbnailUrl: "https://example.com/thumb.jpg",
+                audioUrl: "https://example.com/ringtone.mp3",
+                duration: "0:30",
+                description: "Ethiopian Orthodox church bell"
+            };
+            
+            const formData = prompt(`Enter ringtone data as JSON:\n\nExample:\n${JSON.stringify(example, null, 2)}\n\nPaste your JSON:`, JSON.stringify(example, null, 2));
+            if (formData) {
                 try {
-                    const data = JSON.parse(form);
+                    const data = JSON.parse(formData);
                     addRingtone(data);
                 } catch (e) {
-                    alert('Invalid JSON format');
+                    alert('Invalid JSON format: ' + e.message);
                 }
             }
         }
 
         async function addRingtone(data) {
             try {
-                const response = await fetch(`${API_URL}/api/ringtones`, {
+                const url = getUrlWithBypass(`${API_URL}/api/ringtones`);
+                const response = await fetch(url, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${authToken}`
-                    },
+                    headers: getHeaders(),
                     body: JSON.stringify(data)
                 });
                 const result = await response.json();
                 if (result.success) {
-                    alert('Ringtone added successfully!');
+                    alert('✅ Ringtone added successfully!');
                     loadRingtones();
                 } else {
-                    alert('Error: ' + result.error);
+                    alert('❌ Error: ' + (result.error || 'Unknown error'));
                 }
             } catch (error) {
-                alert('Error: ' + error.message);
+                alert('❌ Error: ' + error.message);
+            }
+        }
+
+        async function deleteMezmur(id) {
+            if (!confirm('Delete this mezmur?')) return;
+            try {
+                const url = getUrlWithBypass(`${API_URL}/api/mezmurs/${id}`);
+                const response = await fetch(url, {
+                    method: 'DELETE',
+                    headers: getHeaders()
+                });
+                const result = await response.json();
+                if (result.success || response.ok) {
+                    alert('✅ Deleted successfully!');
+                    loadMezmurs();
+                } else {
+                    alert('❌ Error: ' + (result.error || 'Delete failed'));
+                }
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            }
+        }
+
+        async function deleteWallpaper(id) {
+            if (!confirm('Delete this wallpaper?')) return;
+            try {
+                const url = getUrlWithBypass(`${API_URL}/api/wallpapers/${id}`);
+                const response = await fetch(url, {
+                    method: 'DELETE',
+                    headers: getHeaders()
+                });
+                const result = await response.json();
+                if (result.success || response.ok) {
+                    alert('✅ Deleted successfully!');
+                    loadWallpapers();
+                } else {
+                    alert('❌ Error: ' + (result.error || 'Delete failed'));
+                }
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            }
+        }
+
+        async function deleteRingtone(id) {
+            if (!confirm('Delete this ringtone?')) return;
+            try {
+                const url = getUrlWithBypass(`${API_URL}/api/ringtones/${id}`);
+                const response = await fetch(url, {
+                    method: 'DELETE',
+                    headers: getHeaders()
+                });
+                const result = await response.json();
+                if (result.success || response.ok) {
+                    alert('✅ Deleted successfully!');
+                    loadRingtones();
+                } else {
+                    alert('❌ Error: ' + (result.error || 'Delete failed'));
+                }
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
             }
         }
     </script>

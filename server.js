@@ -72,14 +72,24 @@ try {
   console.error('Error loading routes:', error.message);
 }
 
+// Serve static files from public directory (admin panels)
+app.use(express.static('public', {
+  extensions: ['html'],
+  index: false // Don't serve index.html by default
+}));
+
 // Handle favicon requests (to prevent 404s)
 app.get('/favicon.ico', (req, res) => {
   res.status(204).end();
 });
 
-// Serve admin panel
+// Serve admin panel routes
 app.get('/admin', (req, res) => {
-  res.sendFile('public/admin.html', { root: __dirname });
+  res.sendFile('admin.html', { root: __dirname + '/public' });
+});
+
+app.get('/create-admin', (req, res) => {
+  res.sendFile('create_admin.html', { root: __dirname + '/public' });
 });
 
 // Health check (always works, even without DB)
