@@ -83,12 +83,21 @@ exports.getMezmur = async (req, res, next) => {
 // @access  Private/Admin
 exports.createMezmur = async (req, res, next) => {
   try {
-    const mezmurData = req.body;
     const { cloudinary } = require('../config/cloudinary');
+    
+    // Extract form data (works for both JSON and FormData)
+    const mezmurData = {
+      title: req.body.title,
+      artist: req.body.artist,
+      category: req.body.category || 'All',
+      duration: req.body.duration || '0:00',
+      description: req.body.description || '',
+      lyrics: req.body.lyrics || ''
+    };
 
-    // Handle file uploads if present
+    // Handle file uploads if present (priority: files > URLs)
     if (req.files && cloudinary) {
-      // Upload image to Cloudinary
+      // Upload image to Cloudinary if file is provided
       if (req.files.image && req.files.image[0]) {
         const imageResult = await new Promise((resolve, reject) => {
           const uploadStream = cloudinary.uploader.upload_stream(
@@ -102,9 +111,12 @@ exports.createMezmur = async (req, res, next) => {
         });
         mezmurData.imageUrl = imageResult.secure_url;
         mezmurData.cloudinaryImageId = imageResult.public_id;
+      } else if (req.body.imageUrl) {
+        // Use provided URL if no file uploaded
+        mezmurData.imageUrl = req.body.imageUrl;
       }
 
-      // Upload audio to Cloudinary
+      // Upload audio to Cloudinary if file is provided
       if (req.files.audio && req.files.audio[0]) {
         const audioResult = await new Promise((resolve, reject) => {
           const uploadStream = cloudinary.uploader.upload_stream(
@@ -118,11 +130,41 @@ exports.createMezmur = async (req, res, next) => {
         });
         mezmurData.audioUrl = audioResult.secure_url;
         mezmurData.cloudinaryAudioId = audioResult.public_id;
+      } else if (req.body.audioUrl) {
+        // Use provided URL if no file uploaded
+        mezmurData.audioUrl = req.body.audioUrl;
+      }
+    } else {
+      // No Cloudinary configured or no files - use URLs from body
+      if (req.body.imageUrl) {
+        mezmurData.imageUrl = req.body.imageUrl;
+      }
+      if (req.body.audioUrl) {
+        mezmurData.audioUrl = req.body.audioUrl;
       }
     }
 
-    // imageUrl and audioUrl can be provided directly in the request body
-    // If not uploaded via files, they should be provided as URLs
+    // Validate required fields
+    if (!mezmurData.title || !mezmurData.artist) {
+      return res.status(400).json({
+        success: false,
+        error: 'Title and artist are required'
+      });
+    }
+
+    if (!mezmurData.imageUrl) {
+      return res.status(400).json({
+        success: false,
+        error: 'Image URL or file is required'
+      });
+    }
+
+    if (!mezmurData.audioUrl) {
+      return res.status(400).json({
+        success: false,
+        error: 'Audio URL or file is required'
+      });
+    }
 
     const mezmur = await Mezmur.create(mezmurData);
 
@@ -131,6 +173,7 @@ exports.createMezmur = async (req, res, next) => {
       data: mezmur
     });
   } catch (error) {
+    console.error('Error creating mezmur:', error);
     next(error);
   }
 };
