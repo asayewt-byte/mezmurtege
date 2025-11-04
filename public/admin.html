@@ -537,7 +537,12 @@
                     modal.remove();
                     loadMezmurs();
                 } else {
-                    alert('❌ Error: ' + (res.error || 'Unknown error'));
+                    let errorMsg = res.error || 'Unknown error';
+                    if (res.debug) {
+                        errorMsg += '\n\nDebug info:\n' + JSON.stringify(res.debug, null, 2);
+                        console.error('Backend debug info:', res.debug);
+                    }
+                    alert('❌ Error: ' + errorMsg);
                 }
             } catch (e) {
                 console.error('Upload error:', e);
