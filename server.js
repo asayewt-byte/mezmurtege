@@ -21,8 +21,20 @@ if (process.env.MONGODB_URI) {
 
 const app = express();
 
-// Security middleware
-app.use(helmet());
+// CORS - Must be before other middleware
+const corsOptions = {
+  origin: process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : '*',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
+};
+app.use(cors(corsOptions));
+
+// Security middleware (configure helmet to work with CORS)
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  crossOriginEmbedderPolicy: false
+}));
 
 // Rate limiting
 const limiter = rateLimit({
@@ -30,13 +42,6 @@ const limiter = rateLimit({
   max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100
 });
 app.use('/api/', limiter);
-
-// CORS
-const corsOptions = {
-  origin: process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : '*',
-  credentials: true
-};
-app.use(cors(corsOptions));
 
 // Body parser
 app.use(express.json());
