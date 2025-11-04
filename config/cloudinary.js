@@ -7,7 +7,8 @@ const memoryStorage = multer.memoryStorage();
 // Multer upload instances
 const uploadImage = multer({ 
   storage: memoryStorage,
-  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  preservePath: true // Preserve original path info
 });
 
 const uploadAudio = multer({ 
