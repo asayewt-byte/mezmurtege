@@ -96,52 +96,42 @@ exports.createMezmur = async (req, res, next) => {
     };
 
     // Handle file uploads if present (priority: files > URLs)
-    if (req.files && cloudinary) {
-      // Upload image to Cloudinary if file is provided
-      if (req.files.image && req.files.image[0]) {
-        const imageResult = await new Promise((resolve, reject) => {
-          const uploadStream = cloudinary.uploader.upload_stream(
-            { folder: 'tselot_tunes/images', resource_type: 'image' },
-            (error, result) => {
-              if (error) reject(error);
-              else resolve(result);
-            }
-          );
-          uploadStream.end(req.files.image[0].buffer);
-        });
-        mezmurData.imageUrl = imageResult.secure_url;
-        mezmurData.cloudinaryImageId = imageResult.public_id;
-      } else if (req.body.imageUrl) {
-        // Use provided URL if no file uploaded
-        mezmurData.imageUrl = req.body.imageUrl;
-      }
+    // Upload image to Cloudinary if file is provided
+    if (req.files && req.files.image && req.files.image[0] && cloudinary) {
+      const imageResult = await new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          { folder: 'tselot_tunes/images', resource_type: 'image' },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
+        uploadStream.end(req.files.image[0].buffer);
+      });
+      mezmurData.imageUrl = imageResult.secure_url;
+      mezmurData.cloudinaryImageId = imageResult.public_id;
+    } else if (req.body.imageUrl) {
+      // Use provided URL if no file uploaded or Cloudinary not configured
+      mezmurData.imageUrl = req.body.imageUrl.trim();
+    }
 
-      // Upload audio to Cloudinary if file is provided
-      if (req.files.audio && req.files.audio[0]) {
-        const audioResult = await new Promise((resolve, reject) => {
-          const uploadStream = cloudinary.uploader.upload_stream(
-            { folder: 'tselot_tunes/audio', resource_type: 'video' },
-            (error, result) => {
-              if (error) reject(error);
-              else resolve(result);
-            }
-          );
-          uploadStream.end(req.files.audio[0].buffer);
-        });
-        mezmurData.audioUrl = audioResult.secure_url;
-        mezmurData.cloudinaryAudioId = audioResult.public_id;
-      } else if (req.body.audioUrl) {
-        // Use provided URL if no file uploaded
-        mezmurData.audioUrl = req.body.audioUrl;
-      }
-    } else {
-      // No Cloudinary configured or no files - use URLs from body
-      if (req.body.imageUrl) {
-        mezmurData.imageUrl = req.body.imageUrl;
-      }
-      if (req.body.audioUrl) {
-        mezmurData.audioUrl = req.body.audioUrl;
-      }
+    // Upload audio to Cloudinary if file is provided
+    if (req.files && req.files.audio && req.files.audio[0] && cloudinary) {
+      const audioResult = await new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          { folder: 'tselot_tunes/audio', resource_type: 'video' },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
+        uploadStream.end(req.files.audio[0].buffer);
+      });
+      mezmurData.audioUrl = audioResult.secure_url;
+      mezmurData.cloudinaryAudioId = audioResult.public_id;
+    } else if (req.body.audioUrl) {
+      // Use provided URL if no file uploaded or Cloudinary not configured
+      mezmurData.audioUrl = req.body.audioUrl.trim();
     }
 
     // Validate required fields
@@ -174,6 +164,8 @@ exports.createMezmur = async (req, res, next) => {
     });
   } catch (error) {
     console.error('Error creating mezmur:', error);
+    console.error('Request body:', req.body);
+    console.error('Request files:', req.files);
     next(error);
   }
 };
