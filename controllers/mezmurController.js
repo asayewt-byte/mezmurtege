@@ -85,6 +85,16 @@ exports.createMezmur = async (req, res, next) => {
   try {
     const { cloudinary } = require('../config/cloudinary');
     
+    // Debug: Log what we receive
+    console.log('=== CREATE MEZMUR REQUEST ===');
+    console.log('Body:', JSON.stringify(req.body, null, 2));
+    console.log('Files:', req.files ? JSON.stringify(Object.keys(req.files), null, 2) : 'No files');
+    if (req.files) {
+      Object.keys(req.files).forEach(key => {
+        console.log(`  ${key}:`, req.files[key] ? req.files[key].length + ' file(s)' : 'none');
+      });
+    }
+    
     // Extract form data (works for both JSON and FormData)
     const mezmurData = {
       title: req.body.title,
@@ -142,17 +152,34 @@ exports.createMezmur = async (req, res, next) => {
       });
     }
 
+    console.log('Image URL from body:', req.body.imageUrl);
+    console.log('Audio URL from body:', req.body.audioUrl);
+    console.log('Final mezmurData.imageUrl:', mezmurData.imageUrl);
+    console.log('Final mezmurData.audioUrl:', mezmurData.audioUrl);
+
     if (!mezmurData.imageUrl) {
       return res.status(400).json({
         success: false,
-        error: 'Image URL or file is required'
+        error: 'Image URL or file is required',
+        debug: {
+          hasFiles: !!req.files,
+          hasImageFile: !!(req.files && req.files.image && req.files.image[0]),
+          bodyImageUrl: req.body.imageUrl,
+          cloudinaryConfigured: !!cloudinary
+        }
       });
     }
 
     if (!mezmurData.audioUrl) {
       return res.status(400).json({
         success: false,
-        error: 'Audio URL or file is required'
+        error: 'Audio URL or file is required',
+        debug: {
+          hasFiles: !!req.files,
+          hasAudioFile: !!(req.files && req.files.audio && req.files.audio[0]),
+          bodyAudioUrl: req.body.audioUrl,
+          cloudinaryConfigured: !!cloudinary
+        }
       });
     }
 
