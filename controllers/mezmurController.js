@@ -301,14 +301,14 @@ exports.deleteMezmur = async (req, res, next) => {
     }
 
     // Delete files from Cloudinary
-    if (mezmur.cloudinaryImageId) {
+    if (mezmur.cloudinaryImageId && cloudinary) {
       await cloudinary.uploader.destroy(mezmur.cloudinaryImageId);
     }
-    if (mezmur.cloudinaryAudioId) {
+    if (mezmur.cloudinaryAudioId && cloudinary) {
       await cloudinary.uploader.destroy(mezmur.cloudinaryAudioId, { resource_type: 'video' });
     }
 
-    await mezmur.remove();
+    await Mezmur.findByIdAndDelete(req.params.id);
 
     res.status(200).json({
       success: true,

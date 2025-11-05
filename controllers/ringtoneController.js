@@ -156,14 +156,14 @@ exports.deleteRingtone = async (req, res, next) => {
     }
 
     // Delete files from Cloudinary
-    if (ringtone.cloudinaryThumbnailId) {
+    if (ringtone.cloudinaryThumbnailId && cloudinary) {
       await cloudinary.uploader.destroy(ringtone.cloudinaryThumbnailId);
     }
-    if (ringtone.cloudinaryAudioId) {
+    if (ringtone.cloudinaryAudioId && cloudinary) {
       await cloudinary.uploader.destroy(ringtone.cloudinaryAudioId, { resource_type: 'video' });
     }
 
-    await ringtone.remove();
+    await Ringtone.findByIdAndDelete(req.params.id);
 
     res.status(200).json({
       success: true,
