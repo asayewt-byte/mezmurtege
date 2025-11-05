@@ -13,10 +13,9 @@ const { uploadImage, uploadAudio, uploadMezmur } = require('../config/cloudinary
 
 // Public routes
 router.route('/').get(getAllMezmurs);
-router.route('/:id').get(getMezmur);
 router.route('/:id/stats').put(updateStats);
 
-// Protected routes (Admin only)
+// Protected routes (Admin only) - must be before /:id route
 router.route('/')
   .post(
     protect,
@@ -28,7 +27,9 @@ router.route('/')
     createMezmur
   );
 
+// Single mezmur routes (must be after / route)
 router.route('/:id')
+  .get(getMezmur)
   .put(
     protect,
     authorize('admin', 'super_admin'),

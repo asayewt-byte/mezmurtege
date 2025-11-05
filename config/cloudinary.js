@@ -41,40 +41,27 @@ const uploadAudio = multer({
 });
 
 // Combined storage for mezmurs (handles both image and audio)
-// Use a function-based storage that routes to appropriate storage based on field name
-const mezmurImageStorage = new CloudinaryStorage({
+// Use a function-based params that routes based on field name
+const mezmurStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
-  params: {
-    folder: 'tselot_tunes/images',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
-    transformation: [{ width: 1080, quality: 'auto' }]
-  }
-});
-
-const mezmurAudioStorage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: 'tselot_tunes/audio',
-    allowed_formats: ['mp3', 'wav', 'm4a'],
-    resource_type: 'video' // Cloudinary handles audio as video type
-  }
-});
-
-// Custom storage that routes based on field name
-const mezmurStorage = {
-  _handleFile: function (req, file, cb) {
-    const storage = file.fieldname === 'audio' ? mezmurAudioStorage : mezmurImageStorage;
-    storage._handleFile(req, file, cb);
-  },
-  _removeFile: function (req, file, cb) {
-    const storage = file.fieldname === 'audio' ? mezmurAudioStorage : mezmurImageStorage;
-    if (storage._removeFile) {
-      storage._removeFile(req, file, cb);
+  params: (req, file) => {
+    // Determine storage params based on file field name
+    if (file.fieldname === 'audio') {
+      return {
+        folder: 'tselot_tunes/audio',
+        allowed_formats: ['mp3', 'wav', 'm4a'],
+        resource_type: 'video' // Cloudinary handles audio as video type
+      };
     } else {
-      cb(null);
+      // For image field (or any other field)
+      return {
+        folder: 'tselot_tunes/images',
+        allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+        transformation: [{ width: 1080, quality: 'auto' }]
+      };
     }
   }
-};
+});
 
 const uploadMezmur = multer({
   storage: mezmurStorage,
