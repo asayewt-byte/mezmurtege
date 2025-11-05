@@ -19,22 +19,32 @@ const uploadAudio = multer({
 // Cloudinary configuration (optional - only if credentials are provided)
 let cloudinary = null;
 try {
-  if (process.env.CLOUDINARY_CLOUD_NAME && 
-      process.env.CLOUDINARY_API_KEY && 
-      process.env.CLOUDINARY_API_SECRET) {
-    const cloudinaryLib = require('cloudinary').v2;
+  const cloudinaryLib = require('cloudinary').v2;
+  
+  // Support both CLOUDINARY_URL (single env var) and individual variables
+  if (process.env.CLOUDINARY_URL) {
+    // Use CLOUDINARY_URL format: cloudinary://api_key:api_secret@cloud_name
+    cloudinaryLib.config();
+    cloudinary = cloudinaryLib;
+    console.log('✅ Cloudinary configured via CLOUDINARY_URL');
+  } else if (process.env.CLOUDINARY_CLOUD_NAME && 
+             process.env.CLOUDINARY_API_KEY && 
+             process.env.CLOUDINARY_API_SECRET) {
+    // Use individual environment variables
     cloudinaryLib.config({
       cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
       api_key: process.env.CLOUDINARY_API_KEY,
       api_secret: process.env.CLOUDINARY_API_SECRET
     });
     cloudinary = cloudinaryLib;
-    console.log('✅ Cloudinary configured');
+    console.log('✅ Cloudinary configured via individual variables');
   } else {
     console.warn('⚠️ Cloudinary not configured - file uploads will use memory storage');
+    console.warn('   Set either CLOUDINARY_URL or CLOUDINARY_CLOUD_NAME + CLOUDINARY_API_KEY + CLOUDINARY_API_SECRET');
   }
 } catch (error) {
   console.warn('⚠️ Cloudinary module not available - file uploads will use memory storage');
+  console.warn('   Error:', error.message);
 }
 
 module.exports = {
