@@ -69,13 +69,79 @@ exports.getWallpaper = async (req, res, next) => {
 // @access  Private/Admin
 exports.createWallpaper = async (req, res, next) => {
   try {
-    const wallpaperData = req.body;
-
-    // Handle file upload
+    const { cloudinary } = require('../config/cloudinary');
+    
+    // Debug: Log what we receive
+    console.log('=== CREATE WALLPAPER REQUEST ===');
+    console.log('Body:', JSON.stringify(req.body, null, 2));
+    console.log('Files:', req.files ? JSON.stringify(Object.keys(req.files), null, 2) : 'No files');
     if (req.file) {
-      wallpaperData.imageUrl = req.file.path;
-      wallpaperData.thumbnailUrl = req.file.path;
-      wallpaperData.cloudinaryId = req.file.filename;
+      console.log('File:', req.file.originalname, req.file.size, 'bytes');
+    }
+    
+    // Extract form data
+    const wallpaperData = {
+      title: req.body.title,
+      category: req.body.category || 'Icons',
+      tags: req.body.tags ? (Array.isArray(req.body.tags) ? req.body.tags : req.body.tags.split(',').map(t => t.trim())) : [],
+      isActive: req.body.isActive !== undefined ? req.body.isActive === 'true' || req.body.isActive === true : true,
+      isFeatured: req.body.isFeatured !== undefined ? req.body.isFeatured === 'true' || req.body.isFeatured === true : false
+    };
+
+    // Handle file upload if present (priority: files > URLs)
+    // Upload image to Cloudinary if file is provided
+    if (req.file && cloudinary) {
+      const imageResult = await new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          { folder: 'tselot_tunes/wallpapers', resource_type: 'image' },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
+        uploadStream.end(req.file.buffer);
+      });
+      wallpaperData.imageUrl = imageResult.secure_url;
+      wallpaperData.thumbnailUrl = imageResult.secure_url;
+      wallpaperData.cloudinaryId = imageResult.public_id;
+    } else if (req.body.imageUrl && req.body.imageUrl.trim()) {
+      // Use provided URL if no file uploaded or Cloudinary not configured
+      const imageUrl = req.body.imageUrl.trim();
+      wallpaperData.imageUrl = imageUrl;
+      wallpaperData.thumbnailUrl = imageUrl;
+    } else {
+      // File uploaded but Cloudinary not configured
+      if (req.file) {
+        return res.status(400).json({
+          success: false,
+          error: 'File uploads require Cloudinary configuration. Please either configure Cloudinary in Render environment variables (CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET) or provide image URLs instead of uploading files.',
+          debug: {
+            hasFile: true,
+            cloudinaryConfigured: false,
+            bodyImageUrl: req.body.imageUrl || '(empty)'
+          }
+        });
+      }
+    }
+
+    // Validate required fields
+    if (!wallpaperData.title || !wallpaperData.title.trim()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Title is required'
+      });
+    }
+
+    if (!wallpaperData.imageUrl) {
+      return res.status(400).json({
+        success: false,
+        error: 'Image URL or file is required',
+        debug: {
+          hasFile: !!req.file,
+          bodyImageUrl: req.body.imageUrl,
+          cloudinaryConfigured: !!cloudinary
+        }
+      });
     }
 
     const wallpaper = await Wallpaper.create(wallpaperData);
@@ -85,6 +151,9 @@ exports.createWallpaper = async (req, res, next) => {
       data: wallpaper
     });
   } catch (error) {
+    console.error('Error creating wallpaper:', error);
+    console.error('Request body:', req.body);
+    console.error('Request file:', req.file);
     next(error);
   }
 };
@@ -146,11 +215,11 @@ exports.deleteWallpaper = async (req, res, next) => {
     }
 
     // Delete from Cloudinary
-    if (wallpaper.cloudinaryId && cloudinary) {
+    if (wallpaper.cloudinaryId) {
       await cloudinary.uploader.destroy(wallpaper.cloudinaryId);
     }
 
-    await Wallpaper.findByIdAndDelete(req.params.id);
+    await wallpaper.remove();
 
     res.status(200).json({
       success: true,
