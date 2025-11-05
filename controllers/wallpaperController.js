@@ -76,7 +76,14 @@ exports.createWallpaper = async (req, res, next) => {
     console.log('Body:', JSON.stringify(req.body, null, 2));
     console.log('Files:', req.files ? JSON.stringify(Object.keys(req.files), null, 2) : 'No files');
     if (req.file) {
-      console.log('File:', req.file.originalname, req.file.size, 'bytes');
+      console.log('File object:', JSON.stringify({
+        originalname: req.file.originalname,
+        filename: req.file.filename,
+        path: req.file.path,
+        size: req.file.size,
+        mimetype: req.file.mimetype,
+        fieldname: req.file.fieldname
+      }, null, 2));
     }
     
     // Extract form data
@@ -89,39 +96,55 @@ exports.createWallpaper = async (req, res, next) => {
     };
 
     // Handle file upload if present (priority: files > URLs)
-    // Upload image to Cloudinary if file is provided
-    if (req.file && cloudinary) {
-      const imageResult = await new Promise((resolve, reject) => {
-        const uploadStream = cloudinary.uploader.upload_stream(
-          { folder: 'tselot_tunes/wallpapers', resource_type: 'image' },
-          (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
-          }
-        );
-        uploadStream.end(req.file.buffer);
-      });
-      wallpaperData.imageUrl = imageResult.secure_url;
-      wallpaperData.thumbnailUrl = imageResult.secure_url;
-      wallpaperData.cloudinaryId = imageResult.public_id;
-    } else if (req.body.imageUrl && req.body.imageUrl.trim()) {
-      // Use provided URL if no file uploaded or Cloudinary not configured
-      const imageUrl = req.body.imageUrl.trim();
-      wallpaperData.imageUrl = imageUrl;
-      wallpaperData.thumbnailUrl = imageUrl;
-    } else {
-      // File uploaded but Cloudinary not configured
-      if (req.file) {
+    // With CloudinaryStorage, multer already uploaded the file to Cloudinary
+    // The file URL is in req.file.path (secure_url from Cloudinary)
+    if (req.file) {
+      // File was uploaded - check if CloudinaryStorage provided the URL
+      if (req.file.path) {
+        // File was successfully uploaded to Cloudinary
+        wallpaperData.imageUrl = req.file.path; // This is the Cloudinary secure_url
+        wallpaperData.thumbnailUrl = req.file.path;
+        wallpaperData.cloudinaryId = req.file.filename || req.file.public_id;
+      } else if (!cloudinary) {
+        // File uploaded but Cloudinary not configured
         return res.status(400).json({
           success: false,
-          error: 'File uploads require Cloudinary configuration. Please either configure Cloudinary in Render environment variables (CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET) or provide image URLs instead of uploading files.',
+          error: 'File uploads require Cloudinary configuration. Please configure Cloudinary in Render environment variables (CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET) or provide image URLs instead.',
           debug: {
             hasFile: true,
             cloudinaryConfigured: false,
             bodyImageUrl: req.body.imageUrl || '(empty)'
           }
         });
+      } else {
+        // File object exists but no path - might be an upload error
+        return res.status(400).json({
+          success: false,
+          error: 'File upload failed. Please try again or use an image URL instead.',
+          debug: {
+            hasFile: true,
+            fileObject: req.file ? 'exists' : 'missing',
+            cloudinaryConfigured: !!cloudinary
+          }
+        });
       }
+    } else if (req.body.imageUrl && req.body.imageUrl.trim()) {
+      // Use provided URL if no file uploaded
+      const imageUrl = req.body.imageUrl.trim();
+      wallpaperData.imageUrl = imageUrl;
+      wallpaperData.thumbnailUrl = imageUrl;
+    } else {
+      // No file and no URL provided
+      return res.status(400).json({
+        success: false,
+        error: 'Image URL or file is required',
+        debug: {
+          hasFile: !!req.file,
+          filePath: req.file ? req.file.path : null,
+          bodyImageUrl: req.body.imageUrl || '(empty)',
+          cloudinaryConfigured: !!cloudinary
+        }
+      });
     }
 
     // Validate required fields

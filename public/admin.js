@@ -165,6 +165,154 @@ async function loadStats() {
     document.getElementById('statsContent').innerHTML = 'Loading...';
 }
 
+function showAddMezmurForm() {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50';
+    modal.innerHTML = `
+        <div class="bg-[#2b281c] border border-white/20 rounded-lg p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-white text-xl font-bold">Add New Mezmur</h3>
+                <button id="closeModal" class="text-white/60 hover:text-white cursor-pointer">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <form id="mezmurForm" class="space-y-4">
+                <div>
+                    <label class="block text-white/80 text-sm font-medium mb-2">Title *</label>
+                    <input type="text" id="formTitle" required class="w-full px-4 py-2 bg-[#201d13] border border-white/10 rounded-lg text-white focus:outline-none focus:border-primary" placeholder="Mezmur Title">
+                </div>
+                <div>
+                    <label class="block text-white/80 text-sm font-medium mb-2">Artist *</label>
+                    <input type="text" id="formArtist" required class="w-full px-4 py-2 bg-[#201d13] border border-white/10 rounded-lg text-white focus:outline-none focus:border-primary" placeholder="Artist Name">
+                </div>
+                <div>
+                    <label class="block text-white/80 text-sm font-medium mb-2">Category</label>
+                    <select id="formCategory" class="w-full px-4 py-2 bg-[#201d13] border border-white/10 rounded-lg text-white focus:outline-none focus:border-primary">
+                        <option value="All">All</option>
+                        <option value="Kidase">Kidase</option>
+                        <option value="Holiday">Holiday</option>
+                        <option value="Sunday">Sunday</option>
+                        <option value="Saints">Saints</option>
+                        <option value="Fasting">Fasting</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-white/80 text-sm font-medium mb-2">Image (File or URL)</label>
+                    <input type="file" id="formImageFile" accept="image/*" class="w-full px-4 py-2 bg-[#201d13] border border-white/10 rounded-lg text-white text-sm mb-2">
+                    <input type="text" id="formImageUrl" class="w-full px-4 py-2 bg-[#201d13] border border-white/10 rounded-lg text-white focus:outline-none focus:border-primary" placeholder="Or paste image URL here">
+                </div>
+                <div>
+                    <label class="block text-white/80 text-sm font-medium mb-2">Audio (File or URL) *</label>
+                    <input type="file" id="formAudioFile" accept="audio/*" class="w-full px-4 py-2 bg-[#201d13] border border-white/10 rounded-lg text-white text-sm mb-2">
+                    <input type="text" id="formAudioUrl" class="w-full px-4 py-2 bg-[#201d13] border border-white/10 rounded-lg text-white focus:outline-none focus:border-primary" placeholder="Or paste audio URL here">
+                </div>
+                <div>
+                    <label class="block text-white/80 text-sm font-medium mb-2">Duration</label>
+                    <input type="text" id="formDuration" class="w-full px-4 py-2 bg-[#201d13] border border-white/10 rounded-lg text-white focus:outline-none focus:border-primary" placeholder="e.g., 5:32">
+                </div>
+                <div>
+                    <label class="block text-white/80 text-sm font-medium mb-2">Lyrics (optional)</label>
+                    <textarea id="formLyrics" rows="3" class="w-full px-4 py-2 bg-[#201d13] border border-white/10 rounded-lg text-white focus:outline-none focus:border-primary" placeholder="Mezmur lyrics..."></textarea>
+                </div>
+                <div class="flex gap-3">
+                    <button type="submit" class="flex-1 py-2 px-4 rounded-lg font-bold cursor-pointer bg-primary text-[#201d13] hover:bg-yellow-500 transition-colors">Add Mezmur</button>
+                    <button type="button" id="cancelBtn" class="px-4 py-2 rounded-lg border border-white/20 text-white hover:bg-white/10 transition-colors">Cancel</button>
+                </div>
+            </form>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    document.getElementById('closeModal').addEventListener('click', () => modal.remove());
+    document.getElementById('cancelBtn').addEventListener('click', () => modal.remove());
+    document.getElementById('mezmurForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await addMezmurWithForm(modal);
+    });
+}
+
+async function addMezmurWithForm(modal) {
+    const title = document.getElementById('formTitle').value.trim();
+    const artist = document.getElementById('formArtist').value.trim();
+    const category = document.getElementById('formCategory').value;
+    const duration = document.getElementById('formDuration').value.trim();
+    const lyrics = document.getElementById('formLyrics').value.trim();
+    
+    const imageFileInput = document.getElementById('formImageFile');
+    const imageUrlInput = document.getElementById('formImageUrl');
+    const audioFileInput = document.getElementById('formAudioFile');
+    const audioUrlInput = document.getElementById('formAudioUrl');
+    
+    const imageFile = imageFileInput ? imageFileInput.files[0] : null;
+    const imageUrl = imageUrlInput ? imageUrlInput.value.trim() : '';
+    const audioFile = audioFileInput ? audioFileInput.files[0] : null;
+    const audioUrl = audioUrlInput ? audioUrlInput.value.trim() : '';
+
+    if (!title) {
+        alert('Please fill in title');
+        return;
+    }
+
+    if (!artist) {
+        alert('Please fill in artist');
+        return;
+    }
+
+    if (!audioFile && !audioUrl) {
+        alert('Please provide an audio file or URL');
+        return;
+    }
+
+    try {
+        const formData = new FormData();
+        formData.append('title', title);
+        formData.append('artist', artist);
+        formData.append('category', category);
+        if (duration) formData.append('duration', duration);
+        if (lyrics) formData.append('lyrics', lyrics);
+        
+        if (imageFile) {
+            formData.append('image', imageFile);
+        }
+        if (imageUrl) {
+            formData.append('imageUrl', imageUrl);
+        }
+        if (audioFile) {
+            formData.append('audio', audioFile);
+        }
+        if (audioUrl) {
+            formData.append('audioUrl', audioUrl);
+        }
+
+        const headers = getHeaders();
+        delete headers['Content-Type']; // Let browser set it for FormData
+
+        const r = await fetch(`${API_URL}/api/mezmurs`, {
+            method: 'POST',
+            headers: {
+                'Authorization': headers['Authorization']
+            },
+            body: formData
+        });
+
+        const res = await r.json();
+        if (res.success) {
+            alert('✅ Mezmur added successfully!');
+            modal.remove();
+            loadMezmurs();
+        } else {
+            let errorMsg = res.error || 'Unknown error';
+            if (res.debug) {
+                errorMsg += '\n\nDebug info:\n' + JSON.stringify(res.debug, null, 2);
+                console.error('Backend debug info:', res.debug);
+            }
+            alert('❌ Error: ' + errorMsg);
+        }
+    } catch (e) {
+        console.error('Upload error:', e);
+        alert('❌ Error: ' + e.message);
+    }
+}
+
 function showAddWallpaperForm() {
     const modal = document.createElement('div');
     modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50';
@@ -221,8 +369,10 @@ async function addWallpaperWithForm(modal) {
     const title = document.getElementById('formTitle').value.trim();
     const category = document.getElementById('formCategory').value;
     const tags = document.getElementById('formTags').value.trim();
-    const imageFile = document.getElementById('formImageFile').files[0];
-    const imageUrl = document.getElementById('formImageUrl').value.trim();
+    const imageFileInput = document.getElementById('formImageFile');
+    const imageUrlInput = document.getElementById('formImageUrl');
+    const imageFile = imageFileInput ? imageFileInput.files[0] : null;
+    const imageUrl = imageUrlInput ? imageUrlInput.value.trim() : '';
 
     if (!title) {
         alert('Please fill in title');
@@ -233,6 +383,15 @@ async function addWallpaperWithForm(modal) {
         alert('Please provide an image file or URL');
         return;
     }
+    
+    console.log('Wallpaper form data:', {
+        title,
+        category,
+        tags,
+        hasFile: !!imageFile,
+        fileName: imageFile ? imageFile.name : null,
+        imageUrl: imageUrl || '(empty)'
+    });
 
     try {
         const formData = new FormData();
@@ -338,7 +497,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('nav-stats').addEventListener('click', () => showTab('stats'));
     document.getElementById('sidebarLogoutBtn').addEventListener('click', logout);
     document.getElementById('addItemBtn').addEventListener('click', () => {
-        if (currentTab === 'wallpapers') showAddWallpaperForm();
+        if (currentTab === 'mezmurs') showAddMezmurForm();
+        else if (currentTab === 'wallpapers') showAddWallpaperForm();
+        else if (currentTab === 'ringtones') showAddRingtoneForm();
     });
     if (authToken) {
         document.getElementById('loginSection').classList.add('hidden');
@@ -347,4 +508,5 @@ document.addEventListener('DOMContentLoaded', () => {
         loadContent();
     }
 });
+
 
