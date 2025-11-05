@@ -65,18 +65,90 @@ exports.getMezmur = async (req, res, next) => {
 // @access  Private/Admin
 exports.createMezmur = async (req, res, next) => {
   try {
-    const mezmurData = req.body;
-
-    // Handle file uploads if present
+    // Debug: Log what we receive
+    console.log('=== CREATE MEZMUR REQUEST ===');
+    console.log('Body:', JSON.stringify(req.body, null, 2));
+    console.log('Files:', req.files ? JSON.stringify(Object.keys(req.files), null, 2) : 'No files');
     if (req.files) {
-      if (req.files.image) {
-        mezmurData.imageUrl = req.files.image[0].path;
-        mezmurData.cloudinaryImageId = req.files.image[0].filename;
-      }
-      if (req.files.audio) {
-        mezmurData.audioUrl = req.files.audio[0].path;
-        mezmurData.cloudinaryAudioId = req.files.audio[0].filename;
-      }
+      Object.keys(req.files).forEach(key => {
+        console.log(`File ${key}:`, req.files[key] ? req.files[key].map(f => ({
+          originalname: f.originalname,
+          filename: f.filename,
+          path: f.path,
+          size: f.size
+        })) : 'none');
+      });
+    }
+    
+    // Extract form data
+    const mezmurData = {
+      title: req.body.title ? req.body.title.trim() : '',
+      artist: req.body.artist ? req.body.artist.trim() : '',
+      category: req.body.category || 'All',
+      duration: req.body.duration ? req.body.duration.trim() : '0:00',
+      lyrics: req.body.lyrics ? req.body.lyrics.trim() : '',
+      description: req.body.description ? req.body.description.trim() : '',
+      isActive: req.body.isActive !== undefined ? req.body.isActive === 'true' || req.body.isActive === true : true
+    };
+
+    // Validate required fields
+    if (!mezmurData.title) {
+      return res.status(400).json({
+        success: false,
+        error: 'Title is required'
+      });
+    }
+
+    if (!mezmurData.artist) {
+      return res.status(400).json({
+        success: false,
+        error: 'Artist is required'
+      });
+    }
+
+    // Handle image upload (priority: files > URLs)
+    if (req.files && req.files.image && req.files.image[0] && req.files.image[0].path) {
+      // File was uploaded to Cloudinary by multer
+      mezmurData.imageUrl = req.files.image[0].path;
+      mezmurData.cloudinaryImageId = req.files.image[0].filename || req.files.image[0].public_id;
+    } else if (req.body.imageUrl && req.body.imageUrl.trim()) {
+      // Use provided URL if no file uploaded
+      mezmurData.imageUrl = req.body.imageUrl.trim();
+    }
+    // Note: imageUrl is required in schema but we'll let mongoose validate it
+
+    // Handle audio upload (priority: files > URLs)
+    if (req.files && req.files.audio && req.files.audio[0] && req.files.audio[0].path) {
+      // File was uploaded to Cloudinary by multer
+      mezmurData.audioUrl = req.files.audio[0].path;
+      mezmurData.cloudinaryAudioId = req.files.audio[0].filename || req.files.audio[0].public_id;
+    } else if (req.body.audioUrl && req.body.audioUrl.trim()) {
+      // Use provided URL if no file uploaded
+      mezmurData.audioUrl = req.body.audioUrl.trim();
+    } else {
+      // Audio is required
+      return res.status(400).json({
+        success: false,
+        error: 'Audio URL or file is required',
+        debug: {
+          hasAudioFile: !!(req.files && req.files.audio && req.files.audio[0]),
+          bodyAudioUrl: req.body.audioUrl || '(empty)',
+          cloudinaryConfigured: !!cloudinary
+        }
+      });
+    }
+
+    // Validate that we have imageUrl
+    if (!mezmurData.imageUrl) {
+      return res.status(400).json({
+        success: false,
+        error: 'Image URL or file is required',
+        debug: {
+          hasImageFile: !!(req.files && req.files.image && req.files.image[0]),
+          bodyImageUrl: req.body.imageUrl || '(empty)',
+          cloudinaryConfigured: !!cloudinary
+        }
+      });
     }
 
     const mezmur = await Mezmur.create(mezmurData);
@@ -86,6 +158,19 @@ exports.createMezmur = async (req, res, next) => {
       data: mezmur
     });
   } catch (error) {
+    console.error('Error creating mezmur:', error);
+    console.error('Request body:', req.body);
+    console.error('Request files:', req.files);
+    
+    // Handle validation errors
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(e => e.message);
+      return res.status(400).json({
+        success: false,
+        error: errors.join(', ')
+      });
+    }
+    
     next(error);
   }
 };
@@ -163,7 +248,7 @@ exports.deleteMezmur = async (req, res, next) => {
       await cloudinary.uploader.destroy(mezmur.cloudinaryAudioId, { resource_type: 'video' });
     }
 
-    await mezmur.remove();
+    await Mezmur.findByIdAndDelete(req.params.id);
 
     res.status(200).json({
       success: true,

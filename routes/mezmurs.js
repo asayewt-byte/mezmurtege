@@ -9,7 +9,7 @@ const {
   updateStats
 } = require('../controllers/mezmurController');
 const { protect, authorize } = require('../middleware/auth');
-const { uploadImage, uploadAudio } = require('../config/cloudinary');
+const { uploadImage, uploadAudio, uploadMezmur } = require('../config/cloudinary');
 
 // Public routes
 router.route('/').get(getAllMezmurs);
@@ -21,7 +21,7 @@ router.route('/')
   .post(
     protect,
     authorize('admin', 'super_admin'),
-    uploadImage.fields([
+    uploadMezmur.fields([
       { name: 'image', maxCount: 1 },
       { name: 'audio', maxCount: 1 }
     ]),
@@ -32,7 +32,7 @@ router.route('/:id')
   .put(
     protect,
     authorize('admin', 'super_admin'),
-    uploadImage.fields([
+    uploadMezmur.fields([
       { name: 'image', maxCount: 1 },
       { name: 'audio', maxCount: 1 }
     ]),
