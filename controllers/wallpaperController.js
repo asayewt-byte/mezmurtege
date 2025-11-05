@@ -215,11 +215,11 @@ exports.deleteWallpaper = async (req, res, next) => {
     }
 
     // Delete from Cloudinary
-    if (wallpaper.cloudinaryId) {
+    if (wallpaper.cloudinaryId && cloudinary) {
       await cloudinary.uploader.destroy(wallpaper.cloudinaryId);
     }
 
-    await wallpaper.remove();
+    await Wallpaper.findByIdAndDelete(req.params.id);
 
     res.status(200).json({
       success: true,
