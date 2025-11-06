@@ -12,12 +12,8 @@ const { protect, authorize } = require('../middleware/auth');
 const { uploadImage } = require('../config/cloudinary');
 
 // Public routes
-router.route('/').get(getAllWallpapers);
-router.route('/:id').get(getWallpaper);
-router.route('/:id/stats').put(updateStats);
-
-// Protected routes (Admin only)
 router.route('/')
+  .get(getAllWallpapers)
   .post(
     protect,
     authorize('admin', 'super_admin'),
@@ -25,7 +21,10 @@ router.route('/')
     createWallpaper
   );
 
+router.route('/:id/stats').put(updateStats);
+
 router.route('/:id')
+  .get(getWallpaper)
   .put(
     protect,
     authorize('admin', 'super_admin'),

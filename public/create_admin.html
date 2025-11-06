@@ -79,6 +79,8 @@
         // Auto-detect API URL when accessed from remote server
         window.addEventListener('DOMContentLoaded', function() {
             const apiUrlInput = document.getElementById('apiUrl');
+            
+            
             if (apiUrlInput && window.location.protocol !== 'file:') {
                 // If accessed from remote server, use the same origin
                 const currentOrigin = window.location.origin;

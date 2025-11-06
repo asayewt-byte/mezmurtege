@@ -9,31 +9,29 @@ const {
   updateStats
 } = require('../controllers/mezmurController');
 const { protect, authorize } = require('../middleware/auth');
-const { uploadImage, uploadAudio, uploadMezmur } = require('../config/cloudinary');
+const { uploadImage, uploadAudio } = require('../config/cloudinary');
 
 // Public routes
-router.route('/').get(getAllMezmurs);
-router.route('/:id/stats').put(updateStats);
-
-// Protected routes (Admin only) - must be before /:id route
 router.route('/')
+  .get(getAllMezmurs)
   .post(
     protect,
     authorize('admin', 'super_admin'),
-    uploadMezmur.fields([
+    uploadImage.fields([
       { name: 'image', maxCount: 1 },
       { name: 'audio', maxCount: 1 }
     ]),
     createMezmur
   );
 
-// Single mezmur routes (must be after / route)
+router.route('/:id/stats').put(updateStats);
+
 router.route('/:id')
   .get(getMezmur)
   .put(
     protect,
     authorize('admin', 'super_admin'),
-    uploadMezmur.fields([
+    uploadImage.fields([
       { name: 'image', maxCount: 1 },
       { name: 'audio', maxCount: 1 }
     ]),

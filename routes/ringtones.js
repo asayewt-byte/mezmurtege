@@ -12,12 +12,8 @@ const { protect, authorize } = require('../middleware/auth');
 const { uploadImage, uploadAudio } = require('../config/cloudinary');
 
 // Public routes
-router.route('/').get(getAllRingtones);
-router.route('/:id').get(getRingtone);
-router.route('/:id/stats').put(updateStats);
-
-// Protected routes (Admin only)
 router.route('/')
+  .get(getAllRingtones)
   .post(
     protect,
     authorize('admin', 'super_admin'),
@@ -28,7 +24,10 @@ router.route('/')
     createRingtone
   );
 
+router.route('/:id/stats').put(updateStats);
+
 router.route('/:id')
+  .get(getRingtone)
   .put(
     protect,
     authorize('admin', 'super_admin'),

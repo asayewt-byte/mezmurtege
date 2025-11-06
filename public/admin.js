@@ -294,7 +294,26 @@ async function addMezmurWithForm(modal) {
             body: formData
         });
 
-        const res = await r.json();
+        // Check if response is JSON
+        const contentType = r.headers.get('content-type');
+        let res;
+        
+        if (contentType && contentType.includes('application/json')) {
+            res = await r.json();
+        } else {
+            const text = await r.text();
+            console.error('Non-JSON response:', text);
+            throw new Error(`Server returned ${r.status}: ${text.substring(0, 100)}`);
+        }
+
+        if (r.status === 404) {
+            throw new Error('Route not found. Please check if the backend server is running and the route is configured correctly.');
+        }
+
+        if (r.status === 401 || r.status === 403) {
+            throw new Error('Authentication failed. Please login again.');
+        }
+
         if (res.success) {
             alert('✅ Mezmur added successfully!');
             modal.remove();
@@ -416,7 +435,26 @@ async function addWallpaperWithForm(modal) {
             body: formData
         });
 
-        const res = await r.json();
+        // Check if response is JSON
+        const contentType = r.headers.get('content-type');
+        let res;
+        
+        if (contentType && contentType.includes('application/json')) {
+            res = await r.json();
+        } else {
+            const text = await r.text();
+            console.error('Non-JSON response:', text);
+            throw new Error(`Server returned ${r.status}: ${text.substring(0, 100)}`);
+        }
+
+        if (r.status === 404) {
+            throw new Error('Route not found. Please check if the backend server is running and the route is configured correctly.');
+        }
+
+        if (r.status === 401 || r.status === 403) {
+            throw new Error('Authentication failed. Please login again.');
+        }
+
         if (res.success) {
             alert('✅ Wallpaper added successfully!');
             modal.remove();
@@ -468,6 +506,166 @@ async function deleteMezmur(id) {
         }
     } catch (e) {
         alert('Error: ' + e.message);
+    }
+}
+
+function showAddRingtoneForm() {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50';
+    modal.innerHTML = `
+        <div class="bg-[#2b281c] border border-white/20 rounded-lg p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-white text-xl font-bold">Add New Ringtone</h3>
+                <button id="closeModal" class="text-white/60 hover:text-white cursor-pointer">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <form id="ringtoneForm" class="space-y-4">
+                <div>
+                    <label class="block text-white/80 text-sm font-medium mb-2">Title *</label>
+                    <input type="text" id="formTitle" required class="w-full px-4 py-2 bg-[#201d13] border border-white/10 rounded-lg text-white focus:outline-none focus:border-primary" placeholder="Ringtone Title">
+                </div>
+                <div>
+                    <label class="block text-white/80 text-sm font-medium mb-2">Artist</label>
+                    <input type="text" id="formArtist" class="w-full px-4 py-2 bg-[#201d13] border border-white/10 rounded-lg text-white focus:outline-none focus:border-primary" placeholder="Artist Name">
+                </div>
+                <div>
+                    <label class="block text-white/80 text-sm font-medium mb-2">Category</label>
+                    <select id="formCategory" class="w-full px-4 py-2 bg-[#201d13] border border-white/10 rounded-lg text-white focus:outline-none focus:border-primary">
+                        <option value="Bells">Bells</option>
+                        <option value="Chants" selected>Chants</option>
+                        <option value="Prayers">Prayers</option>
+                        <option value="Qene">Qene</option>
+                        <option value="Traditional">Traditional</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-white/80 text-sm font-medium mb-2">Thumbnail (File or URL) *</label>
+                    <input type="file" id="formThumbnailFile" accept="image/*" class="w-full px-4 py-2 bg-[#201d13] border border-white/10 rounded-lg text-white text-sm mb-2">
+                    <input type="text" id="formThumbnailUrl" class="w-full px-4 py-2 bg-[#201d13] border border-white/10 rounded-lg text-white focus:outline-none focus:border-primary" placeholder="Or paste thumbnail URL here">
+                </div>
+                <div>
+                    <label class="block text-white/80 text-sm font-medium mb-2">Audio (File or URL) *</label>
+                    <input type="file" id="formAudioFile" accept="audio/*" class="w-full px-4 py-2 bg-[#201d13] border border-white/10 rounded-lg text-white text-sm mb-2">
+                    <input type="text" id="formAudioUrl" class="w-full px-4 py-2 bg-[#201d13] border border-white/10 rounded-lg text-white focus:outline-none focus:border-primary" placeholder="Or paste audio URL here">
+                </div>
+                <div>
+                    <label class="block text-white/80 text-sm font-medium mb-2">Duration *</label>
+                    <input type="text" id="formDuration" required class="w-full px-4 py-2 bg-[#201d13] border border-white/10 rounded-lg text-white focus:outline-none focus:border-primary" placeholder="e.g., 0:30">
+                </div>
+                <div>
+                    <label class="block text-white/80 text-sm font-medium mb-2">Description (optional)</label>
+                    <textarea id="formDescription" rows="3" class="w-full px-4 py-2 bg-[#201d13] border border-white/10 rounded-lg text-white focus:outline-none focus:border-primary" placeholder="Ringtone description..."></textarea>
+                </div>
+                <div class="flex gap-3">
+                    <button type="submit" class="flex-1 py-2 px-4 rounded-lg font-bold cursor-pointer bg-primary text-[#201d13] hover:bg-yellow-500 transition-colors">Add Ringtone</button>
+                    <button type="button" id="cancelBtn" class="px-4 py-2 rounded-lg border border-white/20 text-white hover:bg-white/10 transition-colors">Cancel</button>
+                </div>
+            </form>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    document.getElementById('closeModal').addEventListener('click', () => modal.remove());
+    document.getElementById('cancelBtn').addEventListener('click', () => modal.remove());
+    document.getElementById('ringtoneForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        addRingtoneWithForm(modal);
+    });
+}
+
+async function addRingtoneWithForm(modal) {
+    try {
+        const formData = new FormData();
+        
+        const title = document.getElementById('formTitle').value.trim();
+        const artist = document.getElementById('formArtist').value.trim();
+        const category = document.getElementById('formCategory').value;
+        const duration = document.getElementById('formDuration').value.trim();
+        const description = document.getElementById('formDescription').value.trim();
+        
+        if (!title || !duration) {
+            alert('❌ Please fill in all required fields');
+            return;
+        }
+
+        formData.append('title', title);
+        if (artist) formData.append('artist', artist);
+        formData.append('category', category);
+        formData.append('duration', duration);
+        if (description) formData.append('description', description);
+
+        const thumbnailFile = document.getElementById('formThumbnailFile').files[0];
+        const thumbnailUrl = document.getElementById('formThumbnailUrl').value.trim();
+        const audioFile = document.getElementById('formAudioFile').files[0];
+        const audioUrl = document.getElementById('formAudioUrl').value.trim();
+
+        if (!thumbnailFile && !thumbnailUrl) {
+            alert('❌ Please provide either a thumbnail file or URL');
+            return;
+        }
+        if (!audioFile && !audioUrl) {
+            alert('❌ Please provide either an audio file or URL');
+            return;
+        }
+
+        if (thumbnailFile) {
+            formData.append('thumbnail', thumbnailFile);
+        } else {
+            formData.append('thumbnailUrl', thumbnailUrl);
+        }
+
+        if (audioFile) {
+            formData.append('audio', audioFile);
+        } else {
+            formData.append('audioUrl', audioUrl);
+        }
+
+        const headers = getHeaders();
+        delete headers['Content-Type']; // Let browser set it for FormData
+
+        const r = await fetch(`${API_URL}/api/ringtones`, {
+            method: 'POST',
+            headers: {
+                'Authorization': headers['Authorization']
+            },
+            body: formData
+        });
+
+        // Check if response is JSON
+        const contentType = r.headers.get('content-type');
+        let res;
+        
+        if (contentType && contentType.includes('application/json')) {
+            res = await r.json();
+        } else {
+            const text = await r.text();
+            console.error('Non-JSON response:', text);
+            throw new Error(`Server returned ${r.status}: ${text.substring(0, 100)}`);
+        }
+
+        if (r.status === 404) {
+            throw new Error('Route not found. Please check if the backend server is running and the route is configured correctly.');
+        }
+
+        if (r.status === 401 || r.status === 403) {
+            throw new Error('Authentication failed. Please login again.');
+        }
+
+        if (res.success) {
+            alert('✅ Ringtone added successfully!');
+            modal.remove();
+            loadRingtones();
+        } else {
+            let errorMsg = res.error || 'Unknown error';
+            if (res.debug) {
+                errorMsg += '\n\nDebug info:\n' + JSON.stringify(res.debug, null, 2);
+                console.error('Backend debug info:', res.debug);
+            }
+            alert('❌ Error: ' + errorMsg);
+        }
+    } catch (e) {
+        console.error('Upload error:', e);
+        alert('❌ Error: ' + e.message);
     }
 }
 

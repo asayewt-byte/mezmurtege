@@ -40,41 +40,9 @@ const uploadAudio = multer({
   limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
 });
 
-// Combined storage for mezmurs (handles both image and audio)
-// Use a function-based params that routes based on field name
-const mezmurStorage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: (req, file) => {
-    // Determine storage params based on file field name
-    if (file.fieldname === 'audio') {
-      return {
-        folder: 'tselot_tunes/audio',
-        allowed_formats: ['mp3', 'wav', 'm4a'],
-        resource_type: 'video' // Cloudinary handles audio as video type
-      };
-    } else {
-      // For image field (or any other field)
-      return {
-        folder: 'tselot_tunes/images',
-        allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
-        transformation: [{ width: 1080, quality: 'auto' }]
-      };
-    }
-  }
-});
-
-const uploadMezmur = multer({
-  storage: mezmurStorage,
-  limits: { 
-    fileSize: 50 * 1024 * 1024, // 50MB limit (for audio)
-    files: 2 // Max 2 files (image + audio)
-  }
-});
-
 module.exports = {
   cloudinary,
   uploadImage,
-  uploadAudio,
-  uploadMezmur
+  uploadAudio
 };
 
