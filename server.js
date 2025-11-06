@@ -76,12 +76,12 @@ app.use(helmet({
   }
 }));
 
-// Rate limiting
+// Rate limiting - apply to all routes except static files
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
   max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100
 });
-app.use('/api/', limiter);
+app.use(limiter);
 
 // Body parser
 app.use(express.json());
@@ -95,12 +95,12 @@ if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
-// API Routes with error handling
-console.log('Loading API routes...');
+// Routes - Clean design without /api prefix
+console.log('Loading routes...');
 try {
   const authRoutes = require('./routes/auth');
-  app.use('/api/auth', authRoutes);
-  console.log('✓ Auth routes loaded');
+  app.use('/auth', authRoutes);
+  console.log('✓ Auth routes loaded at /auth');
 } catch (error) {
   console.error('❌ Error loading auth routes:', error.message);
   console.error('Stack:', error.stack);
@@ -108,8 +108,8 @@ try {
 
 try {
   const mezmursRoutes = require('./routes/mezmurs');
-  app.use('/api/mezmurs', mezmursRoutes);
-  console.log('✓ Mezmurs routes loaded');
+  app.use('/mezmurs', mezmursRoutes);
+  console.log('✓ Mezmurs routes loaded at /mezmurs');
 } catch (error) {
   console.error('❌ Error loading mezmurs routes:', error.message);
   console.error('Stack:', error.stack);
@@ -117,9 +117,8 @@ try {
 
 try {
   const wallpapersRouter = require('./routes/wallpapers');
-  console.log('✓ Wallpapers router module loaded, type:', typeof wallpapersRouter);
-  app.use('/api/wallpapers', wallpapersRouter);
-  console.log('✓ Wallpapers routes registered at /api/wallpapers');
+  app.use('/wallpapers', wallpapersRouter);
+  console.log('✓ Wallpapers routes loaded at /wallpapers');
 } catch (error) {
   console.error('❌ Error loading wallpapers routes:', error.message);
   console.error('Stack:', error.stack);
@@ -127,8 +126,8 @@ try {
 
 try {
   const ringtonesRoutes = require('./routes/ringtones');
-  app.use('/api/ringtones', ringtonesRoutes);
-  console.log('✓ Ringtones routes loaded');
+  app.use('/ringtones', ringtonesRoutes);
+  console.log('✓ Ringtones routes loaded at /ringtones');
 } catch (error) {
   console.error('❌ Error loading ringtones routes:', error.message);
   console.error('Stack:', error.stack);
@@ -136,8 +135,8 @@ try {
 
 try {
   const statisticsRoutes = require('./routes/statistics');
-  app.use('/api/statistics', statisticsRoutes);
-  console.log('✓ Statistics routes loaded');
+  app.use('/statistics', statisticsRoutes);
+  console.log('✓ Statistics routes loaded at /statistics');
 } catch (error) {
   console.error('❌ Error loading statistics routes:', error.message);
   console.error('Stack:', error.stack);
@@ -248,14 +247,16 @@ app.get('/debug', async (req, res) => {
 // Root route
 app.get('/', (req, res) => {
   res.json({
-    message: 'Tselot Tunes API',
-    version: '1.0.0',
+    message: 'Tselot Tunes Backend',
+    version: '2.0.0',
     endpoints: {
-      auth: '/api/auth',
-      mezmurs: '/api/mezmurs',
-      wallpapers: '/api/wallpapers',
-      ringtones: '/api/ringtones',
-      statistics: '/api/statistics'
+      auth: '/auth',
+      mezmurs: '/mezmurs',
+      wallpapers: '/wallpapers',
+      ringtones: '/ringtones',
+      statistics: '/statistics',
+      admin: '/admin',
+      health: '/health'
     }
   });
 });
