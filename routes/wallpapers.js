@@ -10,7 +10,7 @@ const {
   updateStats
 } = require('../controllers/wallpaperController');
 const { protect, authorize } = require('../middleware/auth');
-const { uploadImage, handleMulterError } = require('../config/cloudinary');
+const { uploadImage } = require('../config/cloudinary');
 
 // Test route to verify router is working
 router.use((req, res, next) => {
@@ -72,8 +72,16 @@ router.route('/:id')
   .put(
     protect,
     authorize('admin', 'super_admin'),
-    uploadImage.single('image'),
-    handleMulterError,
+    (req, res, next) => {
+      uploadImage.single('image')(req, res, (err) => {
+        if (err && err instanceof multer.MulterError && err.code !== 'LIMIT_FILE_SIZE') {
+          console.warn('Multer error (non-fatal):', err.message);
+          return next();
+        }
+        if (err) return next(err);
+        next();
+      });
+    },
     updateWallpaper
   )
   .delete(protect, authorize('admin', 'super_admin'), deleteWallpaper);
