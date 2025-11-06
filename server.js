@@ -95,6 +95,15 @@ if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
+// Test endpoint to verify server is running
+app.get('/test', (req, res) => {
+  res.json({ 
+    success: true, 
+    message: 'Server is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Routes - Clean design without /api prefix
 console.log('Loading routes...');
 try {
@@ -104,6 +113,7 @@ try {
 } catch (error) {
   console.error('❌ Error loading auth routes:', error.message);
   console.error('Stack:', error.stack);
+  process.exit(1); // Exit on route loading error
 }
 
 try {
@@ -113,6 +123,7 @@ try {
 } catch (error) {
   console.error('❌ Error loading mezmurs routes:', error.message);
   console.error('Stack:', error.stack);
+  process.exit(1); // Exit on route loading error
 }
 
 try {
@@ -122,6 +133,7 @@ try {
 } catch (error) {
   console.error('❌ Error loading wallpapers routes:', error.message);
   console.error('Stack:', error.stack);
+  process.exit(1); // Exit on route loading error
 }
 
 try {
@@ -131,6 +143,7 @@ try {
 } catch (error) {
   console.error('❌ Error loading ringtones routes:', error.message);
   console.error('Stack:', error.stack);
+  process.exit(1); // Exit on route loading error
 }
 
 try {
