@@ -18,6 +18,11 @@ router.use((req, res, next) => {
   next();
 });
 
+// Simple test route to verify router is registered
+router.get('/test', (req, res) => {
+  res.json({ success: true, message: 'Wallpapers router is working!' });
+});
+
 // Public routes
 router.route('/')
   .get(getAllWallpapers)
