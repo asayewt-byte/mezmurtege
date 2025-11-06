@@ -1,4 +1,5 @@
 const API_URL = 'https://mezmurtege.onrender.com';
+const API_PREFIX = ''; // No /api prefix in new design
 let authToken = localStorage.getItem('auth_token');
 let currentTab = 'mezmurs';
 
@@ -16,7 +17,7 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
     const errorDiv = document.getElementById('loginError');
 
     try {
-        const response = await fetch(`${API_URL}/api/auth/login`, {
+        const response = await fetch(`${API_URL}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
@@ -87,7 +88,7 @@ async function loadMezmurs() {
     const tbody = document.getElementById('mezmursList');
     tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-white/60">Loading...</td></tr>';
     try {
-        const response = await fetch(`${API_URL}/api/mezmurs`, { headers: getHeaders() });
+        const response = await fetch(`${API_URL}/mezmurs`, { headers: getHeaders() });
         const data = await response.json();
         if (data.success && data.data) {
             tbody.innerHTML = data.data.map(m => `
@@ -113,7 +114,7 @@ async function loadWallpapers() {
     const container = document.getElementById('wallpapersList');
     container.innerHTML = '<div class="text-center text-white/60 py-8">Loading...</div>';
     try {
-        const response = await fetch(`${API_URL}/api/wallpapers`, { headers: getHeaders() });
+        const response = await fetch(`${API_URL}/wallpapers`, { headers: getHeaders() });
         const data = await response.json();
         if (data.success && data.data) {
             container.innerHTML = data.data.map(w => `
@@ -139,7 +140,7 @@ async function loadRingtones() {
     const tbody = document.getElementById('ringtonesList');
     tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-white/60">Loading...</td></tr>';
     try {
-        const response = await fetch(`${API_URL}/api/ringtones`, { headers: getHeaders() });
+        const response = await fetch(`${API_URL}/ringtones`, { headers: getHeaders() });
         const data = await response.json();
         if (data.success && data.data) {
             tbody.innerHTML = data.data.map(r => `
@@ -286,7 +287,7 @@ async function addMezmurWithForm(modal) {
         const headers = getHeaders();
         delete headers['Content-Type']; // Let browser set it for FormData
 
-        const r = await fetch(`${API_URL}/api/mezmurs`, {
+        const r = await fetch(`${API_URL}/mezmurs`, {
             method: 'POST',
             headers: {
                 'Authorization': headers['Authorization']
@@ -427,7 +428,7 @@ async function addWallpaperWithForm(modal) {
         const headers = getHeaders();
         delete headers['Content-Type']; // Let browser set it for FormData
 
-        const r = await fetch(`${API_URL}/api/wallpapers`, {
+        const r = await fetch(`${API_URL}/wallpapers`, {
             method: 'POST',
             headers: {
                 'Authorization': headers['Authorization']
@@ -476,7 +477,7 @@ async function addWallpaperWithForm(modal) {
 async function deleteWallpaper(id) {
     if (!confirm('Are you sure you want to delete this wallpaper?')) return;
     try {
-        const response = await fetch(`${API_URL}/api/wallpapers/${id}`, {
+        const response = await fetch(`${API_URL}/wallpapers/${id}`, {
             method: 'DELETE',
             headers: getHeaders()
         });
@@ -494,7 +495,7 @@ async function deleteWallpaper(id) {
 async function deleteMezmur(id) {
     if (!confirm('Are you sure you want to delete this mezmur?')) return;
     try {
-        const response = await fetch(`${API_URL}/api/mezmurs/${id}`, {
+        const response = await fetch(`${API_URL}/mezmurs/${id}`, {
             method: 'DELETE',
             headers: getHeaders()
         });
@@ -623,7 +624,7 @@ async function addRingtoneWithForm(modal) {
         const headers = getHeaders();
         delete headers['Content-Type']; // Let browser set it for FormData
 
-        const r = await fetch(`${API_URL}/api/ringtones`, {
+        const r = await fetch(`${API_URL}/ringtones`, {
             method: 'POST',
             headers: {
                 'Authorization': headers['Authorization']
@@ -672,7 +673,7 @@ async function addRingtoneWithForm(modal) {
 async function deleteRingtone(id) {
     if (!confirm('Are you sure you want to delete this ringtone?')) return;
     try {
-        const response = await fetch(`${API_URL}/api/ringtones/${id}`, {
+        const response = await fetch(`${API_URL}/ringtones/${id}`, {
             method: 'DELETE',
             headers: getHeaders()
         });
