@@ -144,14 +144,23 @@ try {
 }
 
 console.log('Route loading complete. Checking registered routes...');
-// Log all registered routes for debugging
-app._router.stack.forEach((middleware, i) => {
-  if (middleware.route) {
-    console.log(`Route ${i}: ${Object.keys(middleware.route.methods).join(', ').toUpperCase()} ${middleware.route.path}`);
-  } else if (middleware.name === 'router') {
-    console.log(`Router ${i}: ${middleware.regexp}`);
+// Log all registered routes for debugging (after a short delay to ensure routes are registered)
+setTimeout(() => {
+  try {
+    const routes = [];
+    app._router.stack.forEach((middleware) => {
+      if (middleware.route) {
+        const methods = Object.keys(middleware.route.methods).join(', ').toUpperCase();
+        routes.push(`${methods} ${middleware.route.path}`);
+      } else if (middleware.name === 'router') {
+        routes.push(`Router: ${middleware.regexp}`);
+      }
+    });
+    console.log('Registered routes:', routes.length > 0 ? routes.join(', ') : 'None found');
+  } catch (err) {
+    console.log('Could not log routes:', err.message);
   }
-});
+}, 100);
 
 // Serve static files from public directory (admin panels)
 app.use(express.static('public', {
