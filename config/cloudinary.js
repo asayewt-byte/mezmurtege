@@ -32,17 +32,48 @@ const audioStorage = new CloudinaryStorage({
 // Multer upload instances
 const uploadImage = multer({ 
   storage: imageStorage,
-  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  fileFilter: (req, file, cb) => {
+    // Accept the file (or no file)
+    cb(null, true);
+  }
 });
 
 const uploadAudio = multer({ 
   storage: audioStorage,
-  limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit
+  fileFilter: (req, file, cb) => {
+    // Accept the file (or no file)
+    cb(null, true);
+  }
 });
+
+// Middleware to handle multer errors gracefully
+// This should be used AFTER multer middleware in routes
+const handleMulterError = (err, req, res, next) => {
+  // Only handle if there's an error
+  if (!err) return next();
+  
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({
+        success: false,
+        error: 'File too large. Maximum size is 10MB for images, 50MB for audio.'
+      });
+    }
+    // For other multer errors, log but allow request to continue (file might be optional)
+    console.warn('Multer error (non-fatal):', err.message);
+    // Clear the error and continue
+    return next();
+  }
+  // For non-multer errors, pass to next error handler
+  next(err);
+};
 
 module.exports = {
   cloudinary,
   uploadImage,
-  uploadAudio
+  uploadAudio,
+  handleMulterError
 };
 

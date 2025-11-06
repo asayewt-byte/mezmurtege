@@ -9,7 +9,7 @@ const {
   updateStats
 } = require('../controllers/mezmurController');
 const { protect, authorize } = require('../middleware/auth');
-const { uploadImage, uploadAudio } = require('../config/cloudinary');
+const { uploadImage, uploadAudio, handleMulterError } = require('../config/cloudinary');
 
 // Public routes
 router.route('/')
@@ -21,6 +21,7 @@ router.route('/')
       { name: 'image', maxCount: 1 },
       { name: 'audio', maxCount: 1 }
     ]),
+    handleMulterError,
     createMezmur
   );
 
@@ -35,6 +36,7 @@ router.route('/:id')
       { name: 'image', maxCount: 1 },
       { name: 'audio', maxCount: 1 }
     ]),
+    handleMulterError,
     updateMezmur
   )
   .delete(protect, authorize('admin', 'super_admin'), deleteMezmur);

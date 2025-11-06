@@ -199,10 +199,12 @@ app.get('/', (req, res) => {
 
 // Handle 404 (must be before error handler)
 app.use((req, res) => {
+  console.log('404 - Route not found:', req.method, req.path);
   res.status(404).json({
     success: false,
     error: 'Route not found',
-    path: req.path
+    path: req.path,
+    method: req.method
   });
 });
 

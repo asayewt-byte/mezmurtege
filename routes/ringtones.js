@@ -9,7 +9,7 @@ const {
   updateStats
 } = require('../controllers/ringtoneController');
 const { protect, authorize } = require('../middleware/auth');
-const { uploadImage, uploadAudio } = require('../config/cloudinary');
+const { uploadImage, uploadAudio, handleMulterError } = require('../config/cloudinary');
 
 // Public routes
 router.route('/')
@@ -21,6 +21,7 @@ router.route('/')
       { name: 'thumbnail', maxCount: 1 },
       { name: 'audio', maxCount: 1 }
     ]),
+    handleMulterError,
     createRingtone
   );
 
@@ -35,6 +36,7 @@ router.route('/:id')
       { name: 'thumbnail', maxCount: 1 },
       { name: 'audio', maxCount: 1 }
     ]),
+    handleMulterError,
     updateRingtone
   )
   .delete(protect, authorize('admin', 'super_admin'), deleteRingtone);
