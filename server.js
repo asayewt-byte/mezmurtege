@@ -57,11 +57,18 @@ app.use(helmet({
       styleSrc: [
         "'self'",
         "'unsafe-inline'",
-        "https://cdn.tailwindcss.com"
+        "https://cdn.tailwindcss.com",
+        "https://fonts.googleapis.com"
+      ],
+      styleSrcElem: [
+        "'self'",
+        "'unsafe-inline'",
+        "https://cdn.tailwindcss.com",
+        "https://fonts.googleapis.com"
       ],
       imgSrc: ["'self'", "data:", "https:"],
       connectSrc: ["'self'", "https:"],
-      fontSrc: ["'self'", "data:"],
+      fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
       frameSrc: ["'none'"]
@@ -89,27 +96,62 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // API Routes with error handling
+console.log('Loading API routes...');
 try {
-  console.log('Loading API routes...');
-  app.use('/api/auth', require('./routes/auth'));
+  const authRoutes = require('./routes/auth');
+  app.use('/api/auth', authRoutes);
   console.log('✓ Auth routes loaded');
-  app.use('/api/mezmurs', require('./routes/mezmurs'));
-  console.log('✓ Mezmurs routes loaded');
-  
-  const wallpapersRouter = require('./routes/wallpapers');
-  console.log('✓ Wallpapers router module loaded');
-  app.use('/api/wallpapers', wallpapersRouter);
-  console.log('✓ Wallpapers routes registered at /api/wallpapers');
-  
-  app.use('/api/ringtones', require('./routes/ringtones'));
-  console.log('✓ Ringtones routes loaded');
-  app.use('/api/statistics', require('./routes/statistics'));
-  console.log('✓ Statistics routes loaded');
-  console.log('All API routes loaded successfully');
 } catch (error) {
-  console.error('❌ Error loading routes:', error.message);
+  console.error('❌ Error loading auth routes:', error.message);
   console.error('Stack:', error.stack);
 }
+
+try {
+  const mezmursRoutes = require('./routes/mezmurs');
+  app.use('/api/mezmurs', mezmursRoutes);
+  console.log('✓ Mezmurs routes loaded');
+} catch (error) {
+  console.error('❌ Error loading mezmurs routes:', error.message);
+  console.error('Stack:', error.stack);
+}
+
+try {
+  const wallpapersRouter = require('./routes/wallpapers');
+  console.log('✓ Wallpapers router module loaded, type:', typeof wallpapersRouter);
+  app.use('/api/wallpapers', wallpapersRouter);
+  console.log('✓ Wallpapers routes registered at /api/wallpapers');
+} catch (error) {
+  console.error('❌ Error loading wallpapers routes:', error.message);
+  console.error('Stack:', error.stack);
+}
+
+try {
+  const ringtonesRoutes = require('./routes/ringtones');
+  app.use('/api/ringtones', ringtonesRoutes);
+  console.log('✓ Ringtones routes loaded');
+} catch (error) {
+  console.error('❌ Error loading ringtones routes:', error.message);
+  console.error('Stack:', error.stack);
+}
+
+try {
+  const statisticsRoutes = require('./routes/statistics');
+  app.use('/api/statistics', statisticsRoutes);
+  console.log('✓ Statistics routes loaded');
+} catch (error) {
+  console.error('❌ Error loading statistics routes:', error.message);
+  console.error('Stack:', error.stack);
+}
+
+console.log('Route loading complete. Checking registered routes...');
+// Log all registered routes for debugging
+app._router.stack.forEach((middleware, i) => {
+  if (middleware.route) {
+    console.log(`Route ${i}: ${Object.keys(middleware.route.methods).join(', ').toUpperCase()} ${middleware.route.path}`);
+  } else if (middleware.name === 'router') {
+    console.log(`Router ${i}: ${middleware.regexp}`);
+  }
+});
 
 // Serve static files from public directory (admin panels)
 app.use(express.static('public', {
