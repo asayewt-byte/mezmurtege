@@ -61,22 +61,62 @@ exports.getRingtone = async (req, res, next) => {
 };
 
 // @desc    Create new ringtone
-// @route   POST /api/ringtones
+// @route   POST /ringtones
 // @access  Private/Admin
 exports.createRingtone = async (req, res, next) => {
   try {
-    const ringtoneData = req.body;
+    console.log('=== CREATE RINGTONE REQUEST ===');
+    console.log('Body:', JSON.stringify(req.body, null, 2));
+    console.log('Files:', req.files ? JSON.stringify(Object.keys(req.files), null, 2) : 'No files');
+    
+    const ringtoneData = {
+      title: req.body.title,
+      artist: req.body.artist || '',
+      category: req.body.category || 'Chants',
+      duration: req.body.duration || '0:30',
+      description: req.body.description || ''
+    };
 
-    // Handle file uploads
-    if (req.files) {
-      if (req.files.thumbnail) {
-        ringtoneData.thumbnailUrl = req.files.thumbnail[0].path;
-        ringtoneData.cloudinaryThumbnailId = req.files.thumbnail[0].filename;
-      }
-      if (req.files.audio) {
-        ringtoneData.audioUrl = req.files.audio[0].path;
-        ringtoneData.cloudinaryAudioId = req.files.audio[0].filename;
-      }
+    // Handle thumbnail: file upload takes priority over URL
+    if (req.files && req.files.thumbnail && req.files.thumbnail[0]) {
+      ringtoneData.thumbnailUrl = req.files.thumbnail[0].path;
+      ringtoneData.cloudinaryThumbnailId = req.files.thumbnail[0].filename || req.files.thumbnail[0].public_id;
+    } else if (req.body.thumbnailUrl && req.body.thumbnailUrl.trim()) {
+      ringtoneData.thumbnailUrl = req.body.thumbnailUrl.trim();
+    }
+
+    // Handle audio: file upload takes priority over URL
+    if (req.files && req.files.audio && req.files.audio[0]) {
+      ringtoneData.audioUrl = req.files.audio[0].path;
+      ringtoneData.cloudinaryAudioId = req.files.audio[0].filename || req.files.audio[0].public_id;
+    } else if (req.body.audioUrl && req.body.audioUrl.trim()) {
+      ringtoneData.audioUrl = req.body.audioUrl.trim();
+    }
+
+    // Validate required fields
+    if (!ringtoneData.title || !ringtoneData.title.trim()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Title is required'
+      });
+    }
+    if (!ringtoneData.thumbnailUrl) {
+      return res.status(400).json({
+        success: false,
+        error: 'Thumbnail URL or file is required'
+      });
+    }
+    if (!ringtoneData.audioUrl) {
+      return res.status(400).json({
+        success: false,
+        error: 'Audio URL or file is required'
+      });
+    }
+    if (!ringtoneData.duration || !ringtoneData.duration.trim()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Duration is required'
+      });
     }
 
     const ringtone = await Ringtone.create(ringtoneData);
@@ -86,6 +126,7 @@ exports.createRingtone = async (req, res, next) => {
       data: ringtone
     });
   } catch (error) {
+    console.error('Error creating ringtone:', error);
     next(error);
   }
 };
