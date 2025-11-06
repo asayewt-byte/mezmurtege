@@ -90,13 +90,25 @@ if (process.env.NODE_ENV === 'development') {
 
 // API Routes with error handling
 try {
+  console.log('Loading API routes...');
   app.use('/api/auth', require('./routes/auth'));
+  console.log('✓ Auth routes loaded');
   app.use('/api/mezmurs', require('./routes/mezmurs'));
-  app.use('/api/wallpapers', require('./routes/wallpapers'));
+  console.log('✓ Mezmurs routes loaded');
+  
+  const wallpapersRouter = require('./routes/wallpapers');
+  console.log('✓ Wallpapers router module loaded');
+  app.use('/api/wallpapers', wallpapersRouter);
+  console.log('✓ Wallpapers routes registered at /api/wallpapers');
+  
   app.use('/api/ringtones', require('./routes/ringtones'));
+  console.log('✓ Ringtones routes loaded');
   app.use('/api/statistics', require('./routes/statistics'));
+  console.log('✓ Statistics routes loaded');
+  console.log('All API routes loaded successfully');
 } catch (error) {
-  console.error('Error loading routes:', error.message);
+  console.error('❌ Error loading routes:', error.message);
+  console.error('Stack:', error.stack);
 }
 
 // Serve static files from public directory (admin panels)
