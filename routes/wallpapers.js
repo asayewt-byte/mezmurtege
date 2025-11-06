@@ -53,10 +53,17 @@ router.route('/')
             // Continue without file
             return next();
           }
+          // File type validation error
+          if (err.message && (err.message.includes('Invalid file type') || err.message.includes('Image file format'))) {
+            return res.status(400).json({
+              success: false,
+              error: err.message || 'Invalid file type. Please upload an image file (jpg, jpeg, png, webp).'
+            });
+          }
           console.error('Upload error:', err);
           return res.status(400).json({
             success: false,
-            error: 'File upload error: ' + err.message
+            error: 'File upload error: ' + (err.message || 'Unknown error')
           });
         }
         next();
