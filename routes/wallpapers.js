@@ -12,6 +12,12 @@ const {
 const { protect, authorize } = require('../middleware/auth');
 const { uploadImage, handleMulterError } = require('../config/cloudinary');
 
+// Test route to verify router is working
+router.use((req, res, next) => {
+  console.log('Wallpapers router - Request:', req.method, req.path);
+  next();
+});
+
 // Public routes
 router.route('/')
   .get(getAllWallpapers)
