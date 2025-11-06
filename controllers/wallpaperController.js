@@ -74,16 +74,15 @@ exports.createWallpaper = async (req, res, next) => {
     // Debug: Log what we receive
     console.log('=== CREATE WALLPAPER REQUEST ===');
     console.log('Body:', JSON.stringify(req.body, null, 2));
-    console.log('Files:', req.files ? JSON.stringify(Object.keys(req.files), null, 2) : 'No files');
+    console.log('File:', req.file ? 'File present' : 'No file');
     if (req.file) {
-      console.log('File object:', JSON.stringify({
+      console.log('File details:', {
         originalname: req.file.originalname,
         filename: req.file.filename,
         path: req.file.path,
         size: req.file.size,
-        mimetype: req.file.mimetype,
-        fieldname: req.file.fieldname
-      }, null, 2));
+        mimetype: req.file.mimetype
+      });
     }
     
     // Extract form data

@@ -61,22 +61,63 @@ exports.getMezmur = async (req, res, next) => {
 };
 
 // @desc    Create new mezmur
-// @route   POST /api/mezmurs
+// @route   POST /mezmurs
 // @access  Private/Admin
 exports.createMezmur = async (req, res, next) => {
   try {
-    const mezmurData = req.body;
+    console.log('=== CREATE MEZMUR REQUEST ===');
+    console.log('Body:', JSON.stringify(req.body, null, 2));
+    console.log('Files:', req.files ? JSON.stringify(Object.keys(req.files), null, 2) : 'No files');
+    
+    const mezmurData = {
+      title: req.body.title,
+      artist: req.body.artist,
+      category: req.body.category || 'All',
+      duration: req.body.duration || '0:00',
+      lyrics: req.body.lyrics || '',
+      description: req.body.description || ''
+    };
 
-    // Handle file uploads if present
-    if (req.files) {
-      if (req.files.image) {
-        mezmurData.imageUrl = req.files.image[0].path;
-        mezmurData.cloudinaryImageId = req.files.image[0].filename;
-      }
-      if (req.files.audio) {
-        mezmurData.audioUrl = req.files.audio[0].path;
-        mezmurData.cloudinaryAudioId = req.files.audio[0].filename;
-      }
+    // Handle image: file upload takes priority over URL
+    if (req.files && req.files.image && req.files.image[0]) {
+      mezmurData.imageUrl = req.files.image[0].path;
+      mezmurData.cloudinaryImageId = req.files.image[0].filename || req.files.image[0].public_id;
+    } else if (req.body.imageUrl && req.body.imageUrl.trim()) {
+      mezmurData.imageUrl = req.body.imageUrl.trim();
+    }
+
+    // Handle audio: file upload takes priority over URL
+    if (req.files && req.files.audio && req.files.audio[0]) {
+      mezmurData.audioUrl = req.files.audio[0].path;
+      mezmurData.cloudinaryAudioId = req.files.audio[0].filename || req.files.audio[0].public_id;
+    } else if (req.body.audioUrl && req.body.audioUrl.trim()) {
+      mezmurData.audioUrl = req.body.audioUrl.trim();
+    }
+
+    // Validate required fields
+    if (!mezmurData.title || !mezmurData.title.trim()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Title is required'
+      });
+    }
+    if (!mezmurData.artist || !mezmurData.artist.trim()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Artist is required'
+      });
+    }
+    if (!mezmurData.imageUrl) {
+      return res.status(400).json({
+        success: false,
+        error: 'Image URL or file is required'
+      });
+    }
+    if (!mezmurData.audioUrl) {
+      return res.status(400).json({
+        success: false,
+        error: 'Audio URL or file is required'
+      });
     }
 
     const mezmur = await Mezmur.create(mezmurData);
@@ -86,6 +127,7 @@ exports.createMezmur = async (req, res, next) => {
       data: mezmur
     });
   } catch (error) {
+    console.error('Error creating mezmur:', error);
     next(error);
   }
 };
