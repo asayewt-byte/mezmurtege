@@ -34,7 +34,18 @@ const uploadImage = multer({
   storage: imageStorage,
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
   fileFilter: (req, file, cb) => {
-    // Accept the file (or no file)
+    // Validate image file types
+    const allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp'];
+    
+    // Check MIME type
+    if (file.mimetype && !allowedImageTypes.includes(file.mimetype.toLowerCase())) {
+      // Check file extension as fallback
+      const fileExt = file.originalname.toLowerCase().substring(file.originalname.lastIndexOf('.'));
+      if (!allowedExtensions.includes(fileExt)) {
+        return cb(new Error(`Invalid file type. Image files only (jpg, jpeg, png, webp). Received: ${file.mimetype || fileExt || 'unknown'}`));
+      }
+    }
     cb(null, true);
   }
 });
@@ -43,7 +54,18 @@ const uploadAudio = multer({
   storage: audioStorage,
   limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit
   fileFilter: (req, file, cb) => {
-    // Accept the file (or no file)
+    // Validate audio file types
+    const allowedAudioTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/m4a', 'audio/x-m4a'];
+    const allowedExtensions = ['.mp3', '.wav', '.m4a'];
+    
+    // Check MIME type
+    if (file.mimetype && !allowedAudioTypes.includes(file.mimetype.toLowerCase())) {
+      // Check file extension as fallback
+      const fileExt = file.originalname.toLowerCase().substring(file.originalname.lastIndexOf('.'));
+      if (!allowedExtensions.includes(fileExt)) {
+        return cb(new Error(`Invalid file type. Audio files only (mp3, wav, m4a). Received: ${file.mimetype || fileExt || 'unknown'}`));
+      }
+    }
     cb(null, true);
   }
 });
