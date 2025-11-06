@@ -92,10 +92,42 @@ const handleMulterError = (err, req, res, next) => {
   next(err);
 };
 
+// Combined multer for mezmurs (handles both image and audio)
+// We'll use memory storage and manually upload to Cloudinary
+const memoryStorage = multer.memoryStorage();
+const uploadAny = multer({ 
+  storage: memoryStorage,
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit (for audio)
+  fileFilter: (req, file, cb) => {
+    // Validate based on field name
+    if (file.fieldname === 'image') {
+      const allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp'];
+      if (file.mimetype && !allowedImageTypes.includes(file.mimetype.toLowerCase())) {
+        const fileExt = file.originalname.toLowerCase().substring(file.originalname.lastIndexOf('.'));
+        if (!allowedExtensions.includes(fileExt)) {
+          return cb(new Error(`Invalid file type for image. Image files only (jpg, jpeg, png, webp). Received: ${file.mimetype || fileExt || 'unknown'}`));
+        }
+      }
+    } else if (file.fieldname === 'audio') {
+      const allowedAudioTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/m4a', 'audio/x-m4a'];
+      const allowedExtensions = ['.mp3', '.wav', '.m4a'];
+      if (file.mimetype && !allowedAudioTypes.includes(file.mimetype.toLowerCase())) {
+        const fileExt = file.originalname.toLowerCase().substring(file.originalname.lastIndexOf('.'));
+        if (!allowedExtensions.includes(fileExt)) {
+          return cb(new Error(`Invalid file type for audio. Audio files only (mp3, wav, m4a). Received: ${file.mimetype || fileExt || 'unknown'}`));
+        }
+      }
+    }
+    cb(null, true);
+  }
+});
+
 module.exports = {
   cloudinary,
   uploadImage,
   uploadAudio,
+  uploadAny,
   handleMulterError
 };
 
