@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radio Station Admin - Remote Upload</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #F6F8F6 0%, #E4E4E7 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 32px;
+        }
+
+        h1 {
+            color: #18181B;
+            margin-bottom: 8px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #71717A;
+            margin-bottom: 32px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            color: #18181B;
+            font-weight: 500;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="url"],
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #E4E4E7;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        input[type="text"]:focus,
+        input[type="url"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #13EC13;
+        }
+
+        .helper-text {
+            color: #71717A;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: #13EC13;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 8px;
+        }
+
+        .btn:hover {
+            background: #10CC10;
+        }
+
+        .btn:disabled {
+            background: #A1A1AA;
+            cursor: not-allowed;
+        }
+
+        .success {
+            background: #13EC13;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            display: none;
+        }
+
+        .error {
+            background: #EF4444;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            display: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #71717A;
+            margin-top: 16px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .success.show,
+        .error.show {
+            display: block;
+        }
+
+        .image-preview {
+            margin-top: 12px;
+            width: 100%;
+            max-width: 200px;
+            border-radius: 12px;
+            display: none;
+        }
+
+        .image-preview.show {
+            display: block;
+        }
+
+        .firebase-config {
+            background: #ECFDF5;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            border: 2px solid #13EC13;
+        }
+
+        .firebase-config h3 {
+            color: #065F46;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .firebase-config p {
+            color: #065F46;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .firebase-config code {
+            background: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            color: #18181B;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📻 Radio Station Admin</h1>
+        <p class="subtitle">Upload stations remotely - Changes appear instantly in the app</p>
+
+        <div class="firebase-config">
+            <h3>✅ Ready to Use!</h3>
+            <p style="color: #065F46; margin-bottom: 8px;">Firebase is configured and ready. You can upload stations directly from this page.</p>
+            <p style="color: #71717A; font-size: 11px;">Changes will appear instantly in the mobile app.</p>
+        </div>
+
+        <div class="error" id="errorMessage"></div>
+        <div class="success" id="successMessage"></div>
+
+        <form id="stationForm">
+            <div class="form-group">
+                <label for="name">Station Name *</label>
+                <input type="text" id="name" name="name" required placeholder="e.g., Mirt Internet Radio">
+            </div>
+
+            <div class="form-group">
+                <label for="frequency">Frequency *</label>
+                <input type="text" id="frequency" name="frequency" required placeholder="e.g., Online or 102.1">
+            </div>
+
+            <div class="form-group">
+                <label for="city">City *</label>
+                <input type="text" id="city" name="city" required placeholder="e.g., Ethiopia">
+            </div>
+
+            <div class="form-group">
+                <label for="streamUrl">Stream URL *</label>
+                <input type="url" id="streamUrl" name="streamUrl" required placeholder="https://stream-175.zeno.fm/...">
+                <p class="helper-text">The radio stream URL</p>
+            </div>
+
+            <div class="form-group">
+                <label for="imageUrl">Image URL</label>
+                <input type="url" id="imageUrl" name="imageUrl" placeholder="https://example.com/station-logo.jpg">
+                <p class="helper-text">Optional: Station logo/image URL</p>
+                <img id="imagePreview" class="image-preview" alt="Preview">
+            </div>
+
+            <button type="submit" class="btn" id="submitBtn">Upload Station</button>
+            <div class="loading" id="loading">Uploading...</div>
+        </form>
+    </div>
+
+    <script>
+        // Firebase configuration for radio-479dd project
+        const firebaseConfig = {
+            apiKey: "AIzaSyAZvl3cxUIJaWABHGWuwToJtrHzZ8tvf-s",
+            authDomain: "radio-479dd.firebaseapp.com",
+            projectId: "radio-479dd",
+            storageBucket: "radio-479dd.firebasestorage.app",
+            messagingSenderId: "115448429438",
+            appId: "1:115448429438:android:629913e26f0da3b7d1d12f"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Image preview
+        const imageUrlInput = document.getElementById('imageUrl');
+        const imagePreview = document.getElementById('imagePreview');
+
+        imageUrlInput.addEventListener('input', (e) => {
+            const url = e.target.value.trim();
+            if (url) {
+                imagePreview.src = url;
+                imagePreview.classList.add('show');
+            } else {
+                imagePreview.classList.remove('show');
+            }
+        });
+
+        // Form submission
+        const form = document.getElementById('stationForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const loading = document.getElementById('loading');
+        const successMessage = document.getElementById('successMessage');
+        const errorMessage = document.getElementById('errorMessage');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Hide previous messages
+            successMessage.classList.remove('show');
+            errorMessage.classList.remove('show');
+
+            // Get form values
+            const name = document.getElementById('name').value.trim();
+            const frequency = document.getElementById('frequency').value.trim();
+            const city = document.getElementById('city').value.trim();
+            const streamUrl = document.getElementById('streamUrl').value.trim();
+            const imageUrl = document.getElementById('imageUrl').value.trim();
+
+            // Validate
+            if (!name || !frequency || !city || !streamUrl) {
+                showError('Please fill in all required fields');
+                return;
+            }
+
+            // Show loading
+            submitBtn.disabled = true;
+            loading.classList.add('show');
+
+            try {
+                // Add station to Firestore
+                await db.collection('stations').add({
+                    name: name,
+                    frequency: frequency,
+                    city: city,
+                    streamUrl: streamUrl,
+                    imageUrl: imageUrl || '',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                // Success
+                showSuccess('Station uploaded successfully! It will appear in the app shortly.');
+                form.reset();
+                imagePreview.classList.remove('show');
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Error uploading station: ' + error.message);
+            } finally {
+                submitBtn.disabled = false;
+                loading.classList.remove('show');
+            }
+        });
+
+        function showSuccess(message) {
+            successMessage.textContent = message;
+            successMessage.classList.add('show');
+            setTimeout(() => {
+                successMessage.classList.remove('show');
+            }, 5000);
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.add('show');
+            setTimeout(() => {
+                errorMessage.classList.remove('show');
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

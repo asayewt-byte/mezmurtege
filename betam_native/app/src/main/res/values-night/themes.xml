@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.EthiopianRadio" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/neon_blue</item>
+        <item name="colorPrimaryVariant">@color/neon_purple</item>
+        <item name="colorOnPrimary">@color/club_black</item>
+        <item name="colorSecondary">@color/neon_pink</item>
+        <item name="colorOnSecondary">@color/club_black</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowBackground">@color/club_black</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>

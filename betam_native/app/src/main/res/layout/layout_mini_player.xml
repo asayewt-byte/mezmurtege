@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="0dp"
+    app:cardBackgroundColor="@color/card_background"
+    app:cardCornerRadius="0dp"
+    app:cardElevation="8dp"
+    app:strokeWidth="1dp"
+    app:strokeColor="@color/neon_blue">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:background="@drawable/neon_card_background">
+
+        <!-- Mini Vinyl Record -->
+        <FrameLayout
+            android:id="@+id/imageMiniVinyl"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <ImageView
+                android:id="@+id/imageMiniBorder"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/vinyl_border_blue"
+                android:contentDescription="@string/now_playing" />
+
+            <ImageView
+                android:id="@+id/imageMiniPlayer"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_margin="6dp"
+                android:scaleType="centerCrop"
+                android:contentDescription="@string/now_playing"
+                tools:src="@android:drawable/ic_menu_gallery" />
+
+            <!-- Mini vinyl center -->
+            <View
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center"
+                android:background="@drawable/vinyl_center"
+                android:elevation="1dp" />
+
+        </FrameLayout>
+
+        <!-- Station Info -->
+        <LinearLayout
+            android:id="@+id/miniStationInfo"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginStart="16dp"
+            app:layout_constraintStart_toEndOf="@id/imageMiniVinyl"
+            app:layout_constraintEnd_toStartOf="@id/buttonPlayPause"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <!-- Station Name -->
+            <TextView
+                android:id="@+id/textStationNameMini"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/neon_blue"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0.05"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:shadowColor="@color/neon_blue"
+                android:shadowDx="0"
+                android:shadowDy="0"
+                android:shadowRadius="8"
+                tools:text="Sheger FM 102.1" />
+
+            <!-- Mini Ticker Tape -->
+            <FrameLayout
+                android:id="@+id/miniTickerContainer"
+                android:layout_width="match_parent"
+                android:layout_height="20dp"
+                android:layout_marginTop="4dp"
+                android:background="@drawable/ticker_background"
+                android:clipChildren="false"
+                android:clipToPadding="false">
+
+                <TextView
+                    android:id="@+id/textNowPlayingMini"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:textSize="10sp"
+                    android:textColor="@color/neon_pink"
+                    android:fontFamily="monospace"
+                    android:gravity="center_vertical"
+                    android:paddingStart="6dp"
+                    android:paddingEnd="6dp"
+                    android:singleLine="true"
+                    android:ellipsize="none"
+                    tools:text="Ethiopian Jazz Mix - Timeless Rhythms    " />
+
+            </FrameLayout>
+
+        </LinearLayout>
+
+        <!-- Play/Pause Button -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/buttonPlayPause"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:backgroundTint="@color/neon_pink"
+            app:tint="@color/club_black"
+            app:srcCompat="@android:drawable/ic_media_play"
+            app:elevation="8dp" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>

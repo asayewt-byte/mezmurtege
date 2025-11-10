@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Neon Nightclub Theme Colors -->
+    <color name="club_black">#03001C</color>
+    <color name="neon_purple">#A800FF</color>
+    <color name="neon_blue">#00E0FF</color>
+    <color name="neon_pink">#FF0077</color>
+    <color name="neon_green">#39FF14</color>
+    <color name="light_glow">#FFFFFF</color>
+    <color name="ticker_bg">#1A00E0FF</color>
+    <color name="dark_overlay">#66000000</color>
+    <color name="neon_glow_purple">#33A800FF</color>
+    <color name="neon_glow_blue">#3300E0FF</color>
+    <color name="neon_glow_pink">#33FF0077</color>
+    <color name="neon_glow_green">#3339FF14</color>
+    <color name="card_background">#B303001C</color>
+    <color name="border_neon">#33FFFFFF</color>
+    
+    <!-- Legacy colors for compatibility -->
+    <color name="primary">#00E0FF</color>
+    <color name="primary_dark">#A800FF</color>
+    <color name="accent">#FF0077</color>
+    <color name="background_light">#03001C</color>
+    <color name="background_dark">#03001C</color>
+    <color name="surface_light">#1A03001C</color>
+    <color name="surface_dark">#1A03001C</color>
+    <color name="text_primary_light">#FFFFFF</color>
+    <color name="text_primary_dark">#FFFFFF</color>
+    <color name="text_secondary_light">#B3FFFFFF</color>
+    <color name="text_secondary_dark">#B3FFFFFF</color>
+</resources>
+
